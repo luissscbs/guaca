@@ -389,6 +389,38 @@ describe('Screens & Navigation Flow', () => {
       fireEvent.press(carroChip);
       expect(mockPush).toHaveBeenCalledWith('/quick-record?presetId=preset-carro');
     });
+
+    it('masks preset amount in "Anotar al instante" when isPrivateMode is true', () => {
+      useFinanceStore.setState({
+        settings: {
+          ...useFinanceStore.getState().settings!,
+          isPrivateMode: true,
+        },
+        quickPresets: [
+          {
+            id: 'preset-carro',
+            name: 'CARRO',
+            type: 'expense',
+            defaultAmount: 50000,
+            pillar: 'leisure',
+            categoryId: 'carro',
+            createdAt: '2026-01-01',
+            updatedAt: '2026-01-01',
+          },
+        ],
+      });
+
+      const { getByRole, getByText, queryByText, queryByLabelText } = render(<HomeScreen />);
+
+      // El monto real no debe aparecer ni en texto visible del chip ni en su accesibilidad
+      expect(queryByText('CARRO · $ 50.000')).toBeNull();
+      expect(queryByLabelText('CARRO · $ 50.000')).toBeNull();
+
+      // El chip enmascarado debe estar presente
+      const maskedChip = getByRole('button', { name: /CARRO · \$ •••••••/i });
+      expect(maskedChip).toBeTruthy();
+      expect(getByText(/CARRO · \$ •••••••/i)).toBeTruthy();
+    });
   });
 
   describe('Movements Screen', () => {
