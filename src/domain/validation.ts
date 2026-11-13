@@ -13,6 +13,7 @@ import {
   SavingsGoal,
   SubscriptionLeak,
   Transaction,
+  UserProfileType,
   ValidationResult,
   Wallet,
 } from './types';
@@ -207,6 +208,31 @@ export function validateDays(options: {
   return {
     isValid: true,
     value: resultValue,
+  };
+}
+
+/**
+ * Valida el tipo de perfil de ingresos del usuario ('salary' | 'student' | 'variable').
+ * Por defecto asigna 'salary' si el valor es null o undefined.
+ */
+export function validateProfileType(type: unknown): ValidationResult<UserProfileType> {
+  if (type === undefined || type === null) {
+    return {
+      isValid: true,
+      value: 'salary',
+    };
+  }
+
+  if (type === 'salary' || type === 'student' || type === 'variable') {
+    return {
+      isValid: true,
+      value: type,
+    };
+  }
+
+  return {
+    isValid: false,
+    error: 'El tipo de perfil de ingreso debe ser: sueldo fijo (salary), estudiante (student) o independiente (variable).',
   };
 }
 

@@ -70,6 +70,44 @@ describe('GuacaRepository (TDD)', () => {
       const updated = await repo.getSettings();
       expect(updated?.isPrivateMode).toBe(true);
     });
+
+    it('guarda y recupera profileType y geminiApiKey de forma segura', async () => {
+      const created = await repo.upsertSettings({
+        userName: 'Laura',
+        currency: 'COP',
+        netMonthlyIncome: 1800000,
+        vitalMinimumBreakdown: { housing: 600000, food: 400000, utilities: 150000, transport: 100000 },
+        monthStartDay: 1,
+        isPrivateMode: false,
+        onboardingCompleted: true,
+        profileType: 'student',
+        geminiApiKey: 'AIzaSyTestApiKey',
+      });
+
+      expect(created.profileType).toBe('student');
+      expect(created.geminiApiKey).toBe('AIzaSyTestApiKey');
+
+      const fetched = await repo.getSettings();
+      expect(fetched?.profileType).toBe('student');
+      expect(fetched?.geminiApiKey).toBe('AIzaSyTestApiKey');
+    });
+
+    it('sanitiza geminiApiKey vacía o con espacios guardándola como undefined', async () => {
+      await repo.upsertSettings({
+        userName: 'Laura',
+        currency: 'COP',
+        netMonthlyIncome: 1800000,
+        vitalMinimumBreakdown: { housing: 600000, food: 400000, utilities: 150000, transport: 100000 },
+        monthStartDay: 1,
+        isPrivateMode: false,
+        onboardingCompleted: true,
+        geminiApiKey: '   ',
+      });
+
+      const fetched = await repo.getSettings();
+      expect(fetched?.geminiApiKey).toBeUndefined();
+      expect(fetched?.profileType).toBe('salary');
+    });
   });
 
   // ========================================================

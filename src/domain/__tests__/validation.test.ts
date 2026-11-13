@@ -4,6 +4,7 @@ import {
   validateTransferWallets,
   validateDays,
   validateBackupPayload,
+  validateProfileType,
 } from '../validation';
 import { BackupPayload } from '../types';
 
@@ -368,6 +369,30 @@ describe('Validation Domain Engine', () => {
     it('rejects when wallets or other collections are not arrays', () => {
       const invalid = { ...validPayload, wallets: 'not-an-array' };
       expect(validateBackupPayload(invalid).isValid).toBe(false);
+    });
+  });
+
+  describe('validateProfileType', () => {
+    it('accepts valid profile types: salary, student, variable', () => {
+      expect(validateProfileType('salary')).toEqual({ isValid: true, value: 'salary' });
+      expect(validateProfileType('student')).toEqual({ isValid: true, value: 'student' });
+      expect(validateProfileType('variable')).toEqual({ isValid: true, value: 'variable' });
+    });
+
+    it('defaults to salary when undefined or null is provided', () => {
+      expect(validateProfileType(undefined)).toEqual({ isValid: true, value: 'salary' });
+      expect(validateProfileType(null)).toEqual({ isValid: true, value: 'salary' });
+    });
+
+    it('rejects invalid profile types with a friendly message', () => {
+      const result = validateProfileType('invalid_type');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toMatch(/perfil de ingreso/i);
+    });
+
+    it('rejects non-string values that are not null/undefined', () => {
+      expect(validateProfileType(123).isValid).toBe(false);
+      expect(validateProfileType({}).isValid).toBe(false);
     });
   });
 });

@@ -56,13 +56,16 @@ export async function exportBackupPayload(
     throw new Error('No es posible exportar un respaldo sin haber configurado los ajustes de usuario.');
   }
 
+  // SEGURIDAD CRÍTICA: Excluir estrictamente geminiApiKey de la exportación
+  const { geminiApiKey: _excludedApiKey, ...safeSettings } = settings;
+
   return {
     metadata: {
       version: 1,
       exportedAt: new Date().toISOString(),
       appVersion,
     },
-    settings,
+    settings: safeSettings,
     wallets,
     creditCards,
     debts,
@@ -166,15 +169,19 @@ export async function importBackupJson(
         DELETE FROM user_settings;
       `);
 
-      // A. user_settings
+      // A. user_settings (Ignora o limpia geminiApiKey por seguridad)
       const s = payload.settings;
+      const profileType =
+        s.profileType === 'student' || s.profileType === 'variable' ? s.profileType : 'salary';
+
       await db.runAsync(
         `INSERT INTO user_settings (
           id, user_name, currency, net_monthly_income,
           vital_housing, vital_food, vital_utilities, vital_transport,
           month_start_day, is_private_mode, onboarding_completed,
+          profile_type, gemini_api_key,
           created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           1,
           s.userName,
@@ -187,6 +194,8 @@ export async function importBackupJson(
           s.monthStartDay,
           s.isPrivateMode ? 1 : 0,
           s.onboardingCompleted ? 1 : 0,
+          profileType,
+          null, // Por seguridad nunca se restauran llaves secretas de archivos externos
           s.createdAt || now,
           s.updatedAt || now,
         ]

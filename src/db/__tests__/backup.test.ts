@@ -51,6 +51,37 @@ describe('Backup & Restore Local JSON (TDD)', () => {
     expect(json).toContain('"userName": "Camila"');
   });
 
+  it('SEGURIDAD: nunca incluye geminiApiKey en el JSON exportado ni lo restaura desde JSON externos', async () => {
+    // Configurar API key en la base de datos
+    const currentSettings = await repo.getSettings();
+    if (currentSettings) {
+      await repo.upsertSettings({
+        ...currentSettings,
+        geminiApiKey: 'AIzaSySuperSecret12345',
+      });
+    }
+
+    const payload = await exportBackupPayload(db, '1.0.0');
+    expect(payload.settings.geminiApiKey).toBeUndefined();
+
+    const json = serializeBackup(payload);
+    expect(json).not.toContain('AIzaSySuperSecret12345');
+    expect(json).not.toContain('geminiApiKey');
+
+    // Intentar importar un JSON que contenga una clave geminiApiKey inyectada
+    const jsonWithApiKey = json.replace(
+      '"userName": "Camila"',
+      '"userName": "Camila", "geminiApiKey": "HackerApiKey67890"'
+    );
+
+    const importResult = await importBackupJson(db, jsonWithApiKey);
+    expect(importResult.success).toBe(true);
+
+    // Verificar que la base de datos NO guardó la clave inyectada
+    const restoredSettings = await repo.getSettings();
+    expect(restoredSettings?.geminiApiKey).toBeUndefined();
+  });
+
   it('restaura un respaldo válido reemplazando las tablas atómicamente', async () => {
     const backup = await exportBackupPayload(db, '1.0.0');
 

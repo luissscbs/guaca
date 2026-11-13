@@ -147,6 +147,8 @@ export interface SavingsGoal {
 // 6. Ajustes de Usuario y Respaldo
 // ==========================================
 
+export type UserProfileType = 'salary' | 'student' | 'variable';
+
 export interface UserSettings {
   userName: string;
   currency: 'COP';
@@ -155,6 +157,8 @@ export interface UserSettings {
   monthStartDay: number; // 1..28
   isPrivateMode: boolean;
   onboardingCompleted: boolean;
+  profileType?: UserProfileType;
+  geminiApiKey?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -223,6 +227,27 @@ export interface CoachSnapshot {
   totalLeaksAnnual: number;
   dayOfMonth: number;
   daysInMonth?: number;
+}
+
+export interface SafeAllowanceSummary {
+  profileType: UserProfileType;
+  profileLabel: string;
+  dailyAllowance: number;
+  weeklyAllowance: number;
+  daysRemaining: number;
+  headlineMessage: string;
+}
+
+export interface SpendingDetectiveInsight {
+  id: string;
+  sourceType: 'category' | 'subscription';
+  categoryOrLeakName: string;
+  monthlySpend: number;
+  suggestedCutAmount: number;
+  annualSavings: number;
+  daysOfGuacaGained: number;
+  debtMonthsSaved: number;
+  nequiMessage: string;
 }
 
 // ==========================================

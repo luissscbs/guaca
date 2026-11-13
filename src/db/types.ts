@@ -11,6 +11,7 @@ import {
   EmergencyFundResult,
   Transaction,
   TransactionType,
+  UserProfileType,
   UserSettings,
   VitalBreakdown,
   Wallet,
@@ -93,6 +94,7 @@ export interface CompleteOnboardingInput {
   initialWalletBalance?: number;
   monthStartDay?: number;
   seedBudgets?: boolean;
+  profileType?: UserProfileType;
 }
 
 export interface OnboardingResult {
