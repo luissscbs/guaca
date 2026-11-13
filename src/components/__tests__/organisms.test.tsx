@@ -460,6 +460,50 @@ describe('Organisms: OnboardingWizard', () => {
       },
     });
   });
+
+  it('allows selecting student profile, adapts texts in steps 2 and 3, and includes profileType in onComplete', () => {
+    const onCompleteMock = jest.fn();
+    const { getByText, getByPlaceholderText, getByRole } = render(
+      <OnboardingWizard onComplete={onCompleteMock} />
+    );
+
+    // Selecciona perfil Estudiante
+    const studentChip = getByRole('button', { name: /Soy estudiante/i });
+    fireEvent.press(studentChip);
+
+    const nameInput = getByPlaceholderText('Tu nombre o apodo');
+    fireEvent.changeText(nameInput, 'Valentina');
+
+    const walletNameInput = getByPlaceholderText('Nombre de tu cuenta principal');
+    fireEvent.changeText(walletNameInput, 'Nequi');
+
+    const nextBtnStep1 = getByRole('button', { name: 'Siguiente' });
+    fireEvent.press(nextBtnStep1);
+
+    // Paso 2: Textos adaptados para estudiante
+    expect(getByText(/Tu mesada o apoyo del mes/i)).toBeTruthy();
+    const incomeInput = getByPlaceholderText('Ingreso neto al mes');
+    fireEvent.changeText(incomeInput, '800000');
+
+    const dayInput = getByPlaceholderText('Día de pago (1 al 28)');
+    fireEvent.changeText(dayInput, '5');
+
+    const nextBtnStep2 = getByRole('button', { name: 'Siguiente' });
+    fireEvent.press(nextBtnStep2);
+
+    // Paso 3: Ayuda adaptada para estudiante
+    expect(getByText(/Si vives con tu familia, deja Arriendo o Servicios en \$0/i)).toBeTruthy();
+
+    const finishBtn = getByRole('button', { name: 'Activar mi Guaca' });
+    fireEvent.press(finishBtn);
+
+    expect(onCompleteMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userName: 'Valentina',
+        profileType: 'student',
+      })
+    );
+  });
 });
 
 describe('Organisms: BackupRestoreCard', () => {
