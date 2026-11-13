@@ -4,6 +4,8 @@ import {
   parseCOPInput,
   formatMonths,
   formatPercentage,
+  cleanNumericInput,
+  formatInterestPer100k,
   PRIVACY_MASK,
 } from '../formatters';
 
@@ -118,3 +120,29 @@ describe('formatPercentage', () => {
     expect(formatPercentage(NaN)).toBe('0%');
   });
 });
+
+describe('cleanNumericInput', () => {
+  it('strips all non-digit characters from string', () => {
+    expect(cleanNumericInput('$ 1.250.000')).toBe('1250000');
+    expect(cleanNumericInput('abc123xyz')).toBe('123');
+    expect(cleanNumericInput('45000')).toBe('45000');
+  });
+
+  it('returns empty string if input is not a string (defensive guard)', () => {
+    expect(cleanNumericInput(null as unknown as string)).toBe('');
+    expect(cleanNumericInput(undefined as unknown as string)).toBe('');
+    expect(cleanNumericInput(12345 as unknown as string)).toBe('');
+    expect(cleanNumericInput({} as unknown as string)).toBe('');
+  });
+});
+
+describe('formatInterestPer100k', () => {
+  it('formats monthly interest rate per 100k in COP', () => {
+    expect(formatInterestPer100k(2.1)).toBe('$ 2.100 por cada $ 100.000');
+    expect(formatInterestPer100k(1.5)).toBe('$ 1.500 por cada $ 100.000');
+    expect(formatInterestPer100k(0)).toBe('$ 0 por cada $ 100.000');
+    expect(formatInterestPer100k(-1)).toBe('$ 0 por cada $ 100.000');
+    expect(formatInterestPer100k(NaN)).toBe('$ 0 por cada $ 100.000');
+  });
+});
+

@@ -89,9 +89,26 @@ export function parseCOPInput(input: string, options?: ParseCOPOptions): number 
 
 /**
  * Strips all non-digit characters from string (for raw numeric input bindings).
+ * Includes defensive guard if input is not a string.
  */
 export function cleanNumericInput(input: string): string {
+  if (typeof input !== 'string') {
+    return '';
+  }
   return input.replace(/\D/g, '');
+}
+
+/**
+ * Formats a monthly interest rate into plain COP per $100.000 owed.
+ * Prohibits abstract banking jargon (like E.A.), translating directly to pesos.
+ * Example: 2.1% -> "$ 2.100 por cada $ 100.000"
+ */
+export function formatInterestPer100k(monthlyRatePct: number): string {
+  if (!Number.isFinite(monthlyRatePct) || monthlyRatePct <= 0) {
+    return '$ 0 por cada $ 100.000';
+  }
+  const interest = roundCOP(100000 * (monthlyRatePct / 100));
+  return `${formatCOP(interest)} por cada $ 100.000`;
 }
 
 /**
