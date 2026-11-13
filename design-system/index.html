@@ -1,0 +1,2390 @@
+<!doctype html>
+<!-- impeccable-disable em-dash-overuse -- CSS variable names in code -->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guaca: Finanzas Personales & Coach Financiero (Android Nativo)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    @layer od-layout {
+      [hidden]:not([hidden="until-found" i]) { display: none !important; }
+      dialog:not([open]) { display: none !important; }
+      :where(.od-stack,.od-row,.od-row-top,.od-cluster,.od-grid,.od-field,.od-stat,.od-cell) > :where(*) { min-width: 0; }
+      .od-stack   { display: flex; flex-direction: column; gap: var(--od-gap, 8px); }
+      .od-row     { display: flex; align-items: center; gap: var(--od-gap, 8px); }
+      .od-row-top { display: flex; align-items: flex-start; gap: var(--od-gap, 8px); }
+      .od-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--od-gap, 8px); }
+      .od-fill    { flex: 1 1 0; min-width: 0; }
+      .od-fixed   { flex: none; }
+      .od-grid    { display: grid; gap: var(--od-gap, 12px); grid-template-columns: repeat(var(--od-cols, 3), minmax(0, 1fr)); }
+      .od-stat, .od-field, .od-cell { display: grid; gap: var(--od-gap, 2px); }
+      :where(.od-stat,.od-field,.od-cell) > :where(*) { display: block; }
+      .od-icon    { display: inline-block; inline-size: var(--od-icon-size, 1em); block-size: var(--od-icon-size, 1em); flex: none; }
+      .od-truncate{ display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .od-nowrap  { white-space: nowrap; }
+      .od-screen  { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; }
+      .od-scroll  { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+    }
+    :root [hidden]:where(:not([hidden="until-found" i])) { display: none; }
+
+    :root {
+      --phone-screen-width: 412px;
+      --phone-screen-height: 915px;
+      --phone-bezel: 10px;
+      --phone-outer-radius: 46px;
+      --phone-screen-radius: 38px;
+      --phone-safe-top: 52px;
+      --phone-safe-bottom: 28px;
+      --phone-system-fg: #0F1D18;
+      --phone-screen-bg: #F6F8F7;
+      --phone-stage-bg: #E3ECE8;
+
+      /* Tokens Verificados WCAG AA+ */
+      --bg-canvas: #F6F8F7;
+      --bg-surface: #FFFFFF;
+      --bg-elevated: #EDF2F0;
+      --bg-subtle: #E3ECE8;
+
+      --text-primary: #0F1D18;
+      --text-secondary: #384B44;
+      --text-muted: #485A53;
+      --text-on-brand: #FFFFFF;
+
+      --border-subtle: #DCE5E1;
+      --border-strong: #B8C9C1;
+
+      --brand-primary: #0B6B53;
+      --brand-primary-pressed: #08523F;
+      --brand-soft: #DDF3EC;
+
+      --finance-vital: #1D4ED8;
+      --finance-vital-soft: #DBEAFE;
+      --finance-vital-border: #93C5FD;
+
+      --finance-growth: #116B34;
+      --finance-growth-soft: #DCFCE7;
+      --finance-growth-border: #86EFAC;
+
+      --finance-warning: #9A4306;
+      --finance-warning-soft: #FEF3C7;
+      --finance-warning-border: #FCD34D;
+
+      --finance-danger: #BE123C;
+      --finance-danger-soft: #FFE4E6;
+      --finance-danger-border: #FDA4AF;
+
+      --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", monospace;
+
+      --radius-xs: 8px;
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+    }
+
+    html.dark {
+      --phone-system-fg: #ECF3F0;
+      --phone-screen-bg: #090F0D;
+      --phone-stage-bg: #050807;
+
+      --bg-canvas: #090F0D;
+      --bg-surface: #121C18;
+      --bg-elevated: #1A2823;
+      --bg-subtle: #21322C;
+
+      --text-primary: #ECF3F0;
+      --text-secondary: #95A8A0;
+      --text-muted: #859E94;
+      --text-on-brand: #06231B;
+
+      --border-subtle: #273D35;
+      --border-strong: #3D5C50;
+
+      --brand-primary: #2DD4A8;
+      --brand-primary-pressed: #14B88E;
+      --brand-soft: #113229;
+
+      --finance-vital: #60A5FA;
+      --finance-vital-soft: #172554;
+      --finance-vital-border: #1E40AF;
+
+      --finance-growth: #4ADE80;
+      --finance-growth-soft: #052E16;
+      --finance-growth-border: #166534;
+
+      --finance-warning: #FBBF24;
+      --finance-warning-soft: #3B2106;
+      --finance-warning-border: #92400E;
+
+      --finance-danger: #FB7185;
+      --finance-danger-soft: #3F0B19;
+      --finance-danger-border: #9F1239;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--phone-stage-bg);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      letter-spacing: -0.01em;
+    }
+
+    /* Outer Android Handheld Bezel */
+    .phone-frame {
+      position: relative;
+      width: calc(var(--phone-screen-width, 412px) + var(--phone-bezel, 10px) * 2);
+      height: calc(var(--phone-screen-height, 915px) + var(--phone-bezel, 10px) * 2);
+      padding: var(--phone-bezel, 10px);
+      border-radius: var(--phone-outer-radius, 46px);
+      background: linear-gradient(155deg, #373A40 0%, #1F2228 44%, #0D0F13 100%);
+      box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.5);
+    }
+
+    .phone-screen {
+      position: relative;
+      width: var(--phone-screen-width, 412px);
+      height: var(--phone-screen-height, 915px);
+      overflow: hidden;
+      border-radius: var(--phone-screen-radius, 38px);
+      background: var(--phone-screen-bg, #F6F8F7);
+    }
+
+    .phone-content {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      padding-top: var(--phone-safe-top, 52px);
+      padding-bottom: var(--phone-safe-bottom, 28px);
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+    }
+
+    /* Camera punch-hole */
+    .punch-hole {
+      position: absolute;
+      z-index: 20;
+      top: 14px;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: #000000;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+    }
+
+    /* Android Status Bar */
+    .status-bar {
+      position: absolute;
+      z-index: 15;
+      inset: 0 0 auto;
+      height: var(--phone-safe-top, 52px);
+      display: grid;
+      grid-template-columns: 1fr 64px 1fr;
+      align-items: start;
+      padding: 14px 20px 0;
+      color: var(--phone-system-fg, #0F1D18);
+      pointer-events: none;
+    }
+    .status-time {
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+    .status-icons {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-icons svg { display: block; fill: currentColor; }
+
+    /* Android Gestural Navigation Bar */
+    .gesture-bar {
+      position: absolute;
+      z-index: 20;
+      left: 50%;
+      bottom: 8px;
+      width: 110px;
+      height: 4px;
+      transform: translateX(-50%);
+      border-radius: 99px;
+      background: var(--phone-system-fg, #0F1D18);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    /* Presentation Scaling for smaller laptops */
+    @media (max-height: 980px) { .phone-frame { zoom: 0.88; } }
+    @media (max-height: 860px) { .phone-frame { zoom: 0.78; } }
+    @media (max-height: 740px) { .phone-frame { zoom: 0.68; } }
+    @media (max-width: 480px) {
+      body { padding: 0; }
+      .phone-frame { width: 100%; height: 100dvh; padding: 0; border-radius: 0; background: none; box-shadow: none; zoom: 1; }
+      .phone-screen { width: 100%; height: 100%; border-radius: 0; }
+    }
+
+    /* ==========================================================================
+       PRODUCT SHELL & ATOMIC COMPONENTS
+       ========================================================================== */
+    .guaca-shell {
+      position: relative;
+      height: 100%;
+    }
+
+    /* Top App Header */
+    .guaca-topbar {
+      padding: 8px 16px 10px;
+      background: var(--bg-canvas);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 10;
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      line-height: 1.15;
+    }
+    .brand-subtitle {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      line-height: 1.2;
+    }
+
+    /* 48x48dp Ergonomic Icon Buttons */
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      min-height: 48px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .icon-btn:active {
+      background: var(--bg-elevated);
+      transform: scale(0.96);
+    }
+
+    /* Scrollable App Body */
+    .guaca-main {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Screen Panels */
+    .app-screen {
+      display: none;
+    }
+    .app-screen.active {
+      display: block;
+    }
+
+    /* CARDS: Radius 12px-16px, Single Elevation (1px subtle border, flat surface)
+       NO NESTED CARDS: Children inside cards use spacing and guaca-divider, never card borders! */
+    .g-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .guaca-divider {
+      height: 1px;
+      background: var(--border-subtle);
+      border: none;
+      margin: 12px 0;
+    }
+
+    /* Tonal information box without card border */
+    .info-tonal-box {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+
+    /* Typography & Numbers */
+    .money-num {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Traffic Light Pills: Color + Icon + Label */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .status-pill.vital { background: var(--finance-vital-soft); color: var(--finance-vital); border-color: var(--finance-vital-border); }
+    .status-pill.growth { background: var(--finance-growth-soft); color: var(--finance-growth); border-color: var(--finance-growth-border); }
+    .status-pill.warning { background: var(--finance-warning-soft); color: var(--finance-warning); border-color: var(--finance-warning-border); }
+    .status-pill.danger { background: var(--finance-danger-soft); color: var(--finance-danger); border-color: var(--finance-danger-border); }
+
+    /* Interactive Buttons: ≥48dp height */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 0 16px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--brand-primary); color: var(--text-on-brand); }
+    .btn-primary:active { background: var(--brand-primary-pressed); }
+    .btn-secondary { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--border-strong); }
+    .btn-secondary:active { background: var(--bg-subtle); }
+    .btn-ghost { background: transparent; color: var(--brand-primary); border-color: var(--border-subtle); }
+    .btn-ghost:active { background: var(--bg-elevated); }
+    .btn-danger { background: var(--finance-danger-soft); color: var(--finance-danger); border-color: var(--finance-danger-border); }
+
+    /* Interactive Chips */
+    .filter-chip {
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-chip.active {
+      background: var(--brand-soft);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+      font-weight: 700;
+    }
+
+    /* Form Inputs */
+    .g-input, .g-select {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+    }
+    .g-input.mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .g-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    /* Transaction Row: 64dp height, accessible */
+    .tx-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+    }
+    .tx-item:active {
+      background: var(--bg-elevated);
+    }
+    .tx-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      flex: none;
+    }
+
+    /* Floating Action Button (FAB): 56dp ergonómico al alcance del pulgar */
+    .guaca-fab {
+      position: absolute;
+      right: 16px;
+      bottom: 82px;
+      z-index: 12;
+      min-height: 54px;
+      padding: 0 18px;
+      border-radius: var(--radius-full);
+      border: none;
+      background: var(--brand-primary);
+      color: var(--text-on-brand);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
+      cursor: pointer;
+    }
+    .guaca-fab:active {
+      transform: scale(0.96);
+    }
+
+    /* Android Bottom Navigation Bar: 5 Destinos Obligatorios (≥48dp cada botón) */
+    .guaca-bottom-nav {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 2px;
+      padding: 4px 6px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      z-index: 10;
+    }
+    .nav-btn {
+      min-height: 52px;
+      padding: 4px 2px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+    .nav-btn-label {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    .nav-btn[aria-current="page"] {
+      color: var(--brand-primary);
+      background: var(--brand-soft);
+    }
+
+    /* Dialogs / Bottom Sheets */
+    dialog.guaca-dialog {
+      position: absolute;
+      inset: auto 12px 32px 12px;
+      width: auto;
+      max-width: none;
+      max-height: calc(100% - 90px);
+      margin: 0;
+      padding: 20px 16px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      overflow-y: auto;
+      z-index: 30;
+    }
+    dialog.guaca-dialog::backdrop {
+      background: rgba(9, 15, 13, 0.65);
+    }
+
+    /* Ergonomic Bottom Snackbar with [DESHACER] action */
+    .guaca-snackbar {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 76px;
+      z-index: 25;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      background: #0F1D18;
+      color: #ECF3F0;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+      border: 1px solid #273D35;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .guaca-snackbar.show {
+      display: flex;
+    }
+    .snackbar-undo-btn {
+      min-height: 48px;
+      padding: 0 12px;
+      border: none;
+      background: transparent;
+      color: #2DD4A8;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" data-phone-shell>
+    <div class="punch-hole" aria-hidden="true"></div>
+
+    <section class="phone-screen">
+      <!-- Status bar -->
+      <div class="status-bar" aria-hidden="true">
+        <span class="status-time" id="clock-time">09:41</span>
+        <div></div>
+        <div class="status-icons">
+          <svg style="width: 14px; height: 11px;" viewBox="0 0 16 12"><path d="M8 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm3.5-3.5a4.95 4.95 0 0 0-7 0 .5.5 0 0 1-.7-.7 5.95 5.95 0 0 1 8.4 0 .5.5 0 0 1-.7.7zm2.1-2.1a7.95 7.95 0 0 0-11.2 0 .5.5 0 0 1-.7-.7 8.95 8.95 0 0 1 12.6 0 .5.5 0 0 1-.7.7z"/></svg>
+          <svg style="width: 13px; height: 11px;" viewBox="0 0 14 12"><path d="M1 10h2V2H1v8zm3 0h2V4H4v6zm3 0h2V6H7v4zm3 0h2V0h-2v10z"/></svg>
+          <svg style="width: 9px; height: 13px;" viewBox="0 0 10 14"><rect x="1" y="2" width="8" height="11" rx="1.5"/><path d="M3 1h4v1H3z"/></svg>
+        </div>
+      </div>
+
+      <main class="phone-content">
+        <div class="od-screen guaca-shell">
+
+          <!-- TOP APP BAR -->
+          <header class="guaca-topbar od-row">
+            <div class="od-row od-fill" style="--od-gap: 10px;">
+              <svg width="36" height="36" viewBox="0 0 40 40" fill="none" role="img" aria-label="Logotipo Guaca G-Vault">
+                <rect x="2" y="2" width="36" height="36" rx="11" fill="var(--brand-soft)" stroke="var(--brand-primary)" stroke-width="2.2"/>
+                <path d="M27.5 14.5C25.8 11.8 23.1 10.2 19.8 10.2C14.4 10.2 10.2 14.5 10.2 20C10.2 25.5 14.4 29.8 19.8 29.8C24.8 29.8 28.6 26.4 29.2 21.6H23.2" stroke="var(--brand-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 15L24.5 20L20 25L15.5 20L20 15Z" fill="var(--brand-primary)"/>
+              </svg>
+              <div class="od-field">
+                <span class="brand-title">Guaca</span>
+                <span class="brand-subtitle">Lo tuyo, intocable</span>
+              </div>
+            </div>
+
+            <div class="od-row" style="--od-gap: 6px;">
+              <button type="button" class="icon-btn" id="btn-privacy-toggle" aria-label="Ocultar o mostrar montos por privacidad" title="Modo Privacidad">
+                <svg class="od-icon" style="--od-icon-size: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+              <button type="button" class="icon-btn" id="btn-theme-toggle" aria-label="Cambiar entre modo claro y modo oscuro OLED" title="Modo Claro / Oscuro">
+                <svg class="od-icon" style="--od-icon-size: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                </svg>
+              </button>
+              <button type="button" class="icon-btn" id="btn-open-settings" aria-label="Abrir ajustes y respaldo local" title="Ajustes y Respaldo">
+                <svg class="od-icon" style="--od-icon-size: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+                </svg>
+              </button>
+            </div>
+          </header>
+
+          <!-- SCROLLABLE BODY AREA -->
+          <div class="od-scroll guaca-main" id="screen-container">
+
+            <!-- ============================================================
+                 SCREEN 0: ONBOARDING GUIADO (PRIMER ARRANQUE EN 3 PASOS)
+                 ============================================================ -->
+            <section class="app-screen" id="screen-onboarding">
+              <div class="od-stack" style="--od-gap: 16px;">
+
+                <!-- Paso 1 -->
+                <div class="g-card od-stack" id="onb-step-1" style="--od-gap: 14px;">
+                  <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Paso 1 de 3: Tu Nombre y Moneda</h1>
+                  <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+                    Guaca cuida lo indispensable de tu hogar. No te pide cuentas en la nube ni correo.
+                  </p>
+
+                  <div class="od-stack" style="--od-gap: 4px;">
+                    <label class="g-label" for="onb-name-input">¿Cómo te gusta que te llamen?</label>
+                    <input type="text" class="g-input" id="onb-name-input" value="Carlos" placeholder="Tu nombre" />
+                  </div>
+
+                  <div class="info-tonal-box od-row" style="justify-content: space-between;">
+                    <div class="od-field">
+                      <strong>Moneda Oficial: COP</strong>
+                      <span style="font-size: 12px; color: var(--text-secondary);">Pesos colombianos sin decimales</span>
+                    </div>
+                    <span class="status-pill vital">✓ Seleccionada</span>
+                  </div>
+
+                  <button type="button" class="btn btn-primary" id="btn-onb-to-step-2">Continuar al Paso 2</button>
+                </div>
+
+                <!-- Paso 2 -->
+                <div class="g-card od-stack" id="onb-step-2" style="--od-gap: 14px; display: none;">
+                  <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Paso 2 de 3: Tu Ingreso Neto Mensual</h1>
+                  <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+                    ¿Cuánto dinero seguro recibes al mes después de deducciones y descuentos de nómina?
+                  </p>
+
+                  <div class="od-stack" style="--od-gap: 4px;">
+                    <label class="g-label" for="onb-income-input">Ingreso neto seguro (COP)</label>
+                    <input type="number" class="g-input mono" id="onb-income-input" value="4500000" step="50000" />
+                  </div>
+
+                  <div class="od-cluster" style="--od-gap: 8px;">
+                    <button type="button" class="btn btn-secondary onb-quick-income" data-val="2500000" style="min-height: 48px; padding: 0 14px; font-size: 13px;">$ 2.500.000</button>
+                    <button type="button" class="btn btn-secondary onb-quick-income" data-val="4500000" style="min-height: 48px; padding: 0 14px; font-size: 13px;">$ 4.500.000</button>
+                    <button type="button" class="btn btn-secondary onb-quick-income" data-val="6500000" style="min-height: 48px; padding: 0 14px; font-size: 13px;">$ 6.500.000</button>
+                  </div>
+
+                  <div class="od-row" style="--od-gap: 8px;">
+                    <button type="button" class="btn btn-secondary" id="btn-onb-back-to-1" style="flex: 1;">Atrás</button>
+                    <button type="button" class="btn btn-primary" id="btn-onb-to-step-3" style="flex: 2;">Continuar al Paso 3</button>
+                  </div>
+                </div>
+
+                <!-- Paso 3 -->
+                <div class="g-card od-stack" id="onb-step-3" style="--od-gap: 14px; display: none;">
+                  <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Paso 3 de 3: Tus 4 Pilares Indispensables</h1>
+                  <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+                    Estas 4 casillas componen tu <strong>Mínimo Vital intocable</strong>. Suman automáticamente en vivo:
+                  </p>
+
+                  <div class="od-stack" style="--od-gap: 8px;">
+                    <div>
+                      <label class="g-label" for="onb-vital-housing">1. Vivienda (arriendo o cuota)</label>
+                      <input type="number" class="g-input mono onb-vital-calc" id="onb-vital-housing" value="1200000" step="50000" />
+                    </div>
+                    <div>
+                      <label class="g-label" for="onb-vital-food">2. Mercado básico (comida esencial)</label>
+                      <input type="number" class="g-input mono onb-vital-calc" id="onb-vital-food" value="700000" step="50000" />
+                    </div>
+                    <div>
+                      <label class="g-label" for="onb-vital-services">3. Servicios públicos e internet</label>
+                      <input type="number" class="g-input mono onb-vital-calc" id="onb-vital-services" value="300000" step="20000" />
+                    </div>
+                    <div>
+                      <label class="g-label" for="onb-vital-transport">4. Transporte esencial</label>
+                      <input type="number" class="g-input mono onb-vital-calc" id="onb-vital-transport" value="250000" step="20000" />
+                    </div>
+                  </div>
+
+                  <!-- Sumador reactivo en vivo -->
+                  <div class="info-tonal-box od-stack" style="--od-gap: 6px;">
+                    <div class="od-row" style="justify-content: space-between;">
+                      <span style="font-size: 13px; color: var(--text-muted);">Mínimo Vital calculado:</span>
+                      <strong class="money-num" id="onb-vital-sum" style="font-size: 16px; color: var(--finance-vital);">$ 2.450.000</strong>
+                    </div>
+                    <div class="od-row" style="justify-content: space-between;">
+                      <span style="font-size: 13px; color: var(--text-muted);">Capacidad de ahorro inicial:</span>
+                      <strong class="money-num" id="onb-savings-preview" style="font-size: 16px; color: var(--finance-growth);">$ 2.050.000</strong>
+                    </div>
+                    <div id="onb-vital-alert" class="status-pill danger" style="display: none; margin-top: 4px;">
+                      ✕ Alerta: Tu Mínimo Vital supera tu ingreso neto mensual.
+                    </div>
+                  </div>
+
+                  <div class="od-row" style="--od-gap: 8px;">
+                    <button type="button" class="btn btn-secondary" id="btn-onb-back-to-2" style="flex: 1;">Atrás</button>
+                    <button type="button" class="btn btn-primary" id="btn-onb-finish" style="flex: 2;">Comenzar con Guaca</button>
+                  </div>
+                </div>
+
+                <button type="button" class="btn btn-ghost" id="btn-onb-skip-example" style="width: 100%;">
+                  Cargar datos de ejemplo y explorar
+                </button>
+              </div>
+            </section>
+
+            <!-- ============================================================
+                 SCREEN 1: INICIO (MÁXIMO 3 BLOQUES LIMPIOS, CERO ESPEJISMO)
+                 ============================================================ -->
+            <section class="app-screen active" id="screen-home">
+              <div class="od-stack" style="--od-gap: 16px;">
+
+                <!-- BLOQUE 1: SEMÁFORO DEL MES CON DISPONIBLE PARA GASTAR SIN CULPA -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-primary);">Semáforo de Noviembre</h1>
+                    <span class="status-pill growth" id="home-health-badge">✓ Estado de Paz</span>
+                  </div>
+
+                  <!-- Número Protagonista Real -->
+                  <div class="od-stack" style="--od-gap: 2px;">
+                    <span style="font-size: 14px; font-weight: 700; color: var(--text-secondary);">Disponible para gastar sin culpa</span>
+                    <div class="money-num" id="home-free-available" style="font-size: 32px; font-weight: 800; color: var(--finance-growth); line-height: 1.1;">
+                      $ 1.120.000
+                    </div>
+                    <span style="font-size: 12px; color: var(--text-muted);">Protegidos: arriendo, comida, servicios y cuotas</span>
+                  </div>
+
+                  <!-- Barra de Proporción Semántica -->
+                  <div style="height: 10px; border-radius: var(--radius-full); background: var(--bg-elevated); display: flex; overflow: hidden;">
+                    <div style="width: 54%; background: var(--finance-vital);" title="Mínimo Vital 54%"></div>
+                    <div style="width: 10%; background: var(--finance-danger);" title="Deudas 10%"></div>
+                    <div style="width: 11%; background: var(--finance-warning);" title="Gastos Libres 11%"></div>
+                    <div style="width: 25%; background: var(--finance-growth);" title="Ahorro Libre 25%"></div>
+                  </div>
+
+                  <!-- Desglose didáctico sin tarjetas anidadas -->
+                  <div class="od-grid" style="--od-cols: 2; --od-gap: 8px;">
+                    <div class="info-tonal-box">
+                      <span style="font-size: 12px; color: var(--text-muted);">Mínimo Vital Blindado</span>
+                      <strong class="money-num" id="home-vital-protected" style="display: block; font-size: 15px; color: var(--finance-vital);">$ 2.450.000</strong>
+                    </div>
+                    <div class="info-tonal-box">
+                      <span style="font-size: 12px; color: var(--text-muted);">Compromisos Deudas</span>
+                      <strong class="money-num" id="home-debts-quota" style="display: block; font-size: 15px; color: var(--text-primary);">$ 430.000</strong>
+                    </div>
+                  </div>
+
+                  <hr class="guaca-divider" />
+
+                  <!-- Saldo Consolidado Discreto (Evita el Espejismo de Riqueza) -->
+                  <div class="od-row" style="justify-content: space-between;">
+                    <span style="font-size: 12px; color: var(--text-muted);">Total guardado en todas las cuentas:</span>
+                    <strong class="money-num" id="home-total-consolidated" style="font-size: 14px; color: var(--text-secondary);">$ 8.920.000</strong>
+                  </div>
+                </div>
+
+                <!-- BLOQUE 2: CONSEJO DEL COACH PABLO CON ACCIÓN DIRECTA -->
+                <div class="g-card od-stack" style="--od-gap: 10px; background: var(--brand-soft); border-color: var(--brand-primary);">
+                  <div class="od-row" style="--od-gap: 8px;">
+                    <svg class="od-icon" style="--od-icon-size: 20px; color: var(--brand-primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <strong style="font-size: 16px; color: var(--text-primary);">Consejo del Coach</strong>
+                  </div>
+                  <p style="margin: 0; font-size: 14px; color: var(--text-primary); line-height: 1.45;">
+                    Tienes <strong>$ 150.000</strong> disponibles en tu cuenta para blindar antes de gastarlos en salidas. ¿Deseas pasarlos al Colchón?
+                  </p>
+                  <button type="button" class="btn btn-primary" id="btn-coach-shield-action" style="min-height: 48px; width: 100%;">
+                    Blindar $ 150.000 en el Colchón
+                  </button>
+                </div>
+
+                <!-- BLOQUE 3: ÚLTIMOS MOVIMIENTOS REGISTRADOS -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary);">Últimos Movimientos</h2>
+                    <button type="button" class="btn btn-ghost" id="btn-see-all-movements" style="min-height: 48px; padding: 0 12px; font-size: 13px;">Ver todos</button>
+                  </div>
+                  <div class="od-stack" id="home-recent-movements-list" style="--od-gap: 8px;">
+                    <!-- Rendered dynamically -->
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- ============================================================
+                 SCREEN 2: MOVIMIENTOS (HISTORIAL, BUSCADOR, FILTROS, EDITAR/BORRAR)
+                 ============================================================ -->
+            <section class="app-screen" id="screen-movements">
+              <div class="od-stack" style="--od-gap: 14px;">
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Movimientos</h1>
+
+                  <!-- Buscador reactivo -->
+                  <input type="text" class="g-input" id="movements-search-input" placeholder="Buscar por comercio o nota..." />
+
+                  <!-- Filtro por pilar financiero -->
+                  <div class="od-cluster" style="--od-gap: 6px;">
+                    <button type="button" class="filter-chip active" data-filter="all">Todos</button>
+                    <button type="button" class="filter-chip" data-filter="vital">Mínimo Vital</button>
+                    <button type="button" class="filter-chip" data-filter="free">Gustos Libres</button>
+                    <button type="button" class="filter-chip" data-filter="saving">Ahorro</button>
+                  </div>
+                </div>
+
+                <!-- Lista de movimientos -->
+                <div class="od-stack" id="movements-full-list" style="--od-gap: 8px;">
+                  <!-- Dynamic movement rows -->
+                </div>
+
+                <!-- Estado vacío amable -->
+                <div class="g-card info-tonal-box od-stack" id="movements-empty-state" style="--od-gap: 8px; text-align: center; display: none;">
+                  <strong style="font-size: 15px;">No hay movimientos encontrados</strong>
+                  <span style="font-size: 13px; color: var(--text-secondary);">Toca el botón flotante "Anotar rápido" para registrar un gasto, ingreso o traslado.</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- ============================================================
+                 SCREEN 3: CUENTAS, TARJETAS Y DEUDAS (CRUD REAL + LENGUAJE DUMMIES)
+                 ============================================================ -->
+            <section class="app-screen" id="screen-accounts">
+              <div class="od-stack" style="--od-gap: 16px;">
+
+                <!-- Resumen patrimonial -->
+                <div class="g-card od-stack" style="--od-gap: 8px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Cuentas y Deudas</h1>
+                    <button type="button" class="btn btn-secondary" id="btn-quick-transfer-trigger" style="min-height: 48px; padding: 0 14px; font-size: 13px;">
+                      Mover Plata
+                    </button>
+                  </div>
+                  <div class="od-row" style="justify-content: space-between;">
+                    <span style="font-size: 13px; color: var(--text-muted);">Saldo Neto (Activos menos Deudas):</span>
+                    <strong class="money-num" id="accounts-net-wealth" style="font-size: 18px; color: var(--brand-primary);">$ 4.470.000</strong>
+                  </div>
+                </div>
+
+                <!-- Sección Cuentas y Efectivo -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Billeteras y Efectivo</h2>
+                    <button type="button" class="btn btn-ghost" id="btn-add-wallet" style="min-height: 48px; padding: 0 12px; font-size: 13px;">+ Nueva Billetera</button>
+                  </div>
+                  <div class="od-stack" id="wallets-list-container" style="--od-gap: 8px;">
+                    <!-- Rendered dynamically -->
+                  </div>
+                </div>
+
+                <!-- Sección Deudas y Tarjetas (Lenguaje Para Dummies) -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Tarjetas y Deudas</h2>
+                    <button type="button" class="btn btn-ghost" id="btn-add-debt" style="min-height: 48px; padding: 0 12px; font-size: 13px;">+ Nueva Deuda</button>
+                  </div>
+
+                  <!-- Selector didáctico de método -->
+                  <div class="info-tonal-box od-stack" style="--od-gap: 8px;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">Elige tu estrategia de pago:</span>
+                    <div class="od-grid" style="--od-cols: 2; --od-gap: 8px;">
+                      <button type="button" class="btn btn-secondary debt-strategy-btn active" data-strat="snowball" style="font-size: 12px; padding: 0 8px;">
+                        Victorias Rápidas
+                      </button>
+                      <button type="button" class="btn btn-secondary debt-strategy-btn" data-strat="avalanche" style="font-size: 12px; padding: 0 8px;">
+                        Ahorra Más Interés
+                      </button>
+                    </div>
+                    <span id="debt-strategy-explainer" style="font-size: 12px; color: var(--text-secondary); line-height: 1.3;">
+                      Enfócate en pagar primero la deuda más pequeña para ganar victorias rápidas y motivación.
+                    </span>
+                  </div>
+
+                  <div class="od-stack" id="debts-list-container" style="--od-gap: 8px;">
+                    <!-- Rendered dynamically -->
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- ============================================================
+                 SCREEN 4: PRESUPUESTO Y DETECTOR DE FUGAS (X 12 IMPACTO ANUAL)
+                 ============================================================ -->
+            <section class="app-screen" id="screen-budgets">
+              <div class="od-stack" style="--od-gap: 16px;">
+
+                <!-- Presupuestos por Categoría -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Topes de Gasto Mensual</h1>
+                    <span class="status-pill growth">Consumo: 82%</span>
+                  </div>
+
+                  <div class="od-stack" id="budgets-category-list" style="--od-gap: 10px;">
+                    <!-- Rendered dynamically with "Ajustar tope" button -->
+                  </div>
+                </div>
+
+                <!-- Detector de Fugas y Suscripciones (Impacto Anualizado) -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Suscripciones y Fugas</h2>
+                    <button type="button" class="btn btn-ghost" id="btn-add-subscription" style="min-height: 48px; padding: 0 12px; font-size: 13px;">+ Nueva Fuga</button>
+                  </div>
+
+                  <div class="info-tonal-box od-stack" style="--od-gap: 4px;">
+                    <span style="font-size: 12px; color: var(--text-muted);">Impacto Anualizado Total:</span>
+                    <strong class="money-num" id="subscriptions-annual-total" style="font-size: 18px; color: var(--finance-warning);">$ 3.406.800 al año</strong>
+                    <span style="font-size: 12px; color: var(--text-secondary);">Cada café o app multiplicado por 12 meses.</span>
+                  </div>
+
+                  <div class="od-stack" id="subscriptions-list-container" style="--od-gap: 8px;">
+                    <!-- Rendered dynamically -->
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- ============================================================
+                 SCREEN 5: PLAN COACH (COLCHÓN, SIMULADOR Y ACCESO A REPORTES)
+                 ============================================================ -->
+            <section class="app-screen" id="screen-coach">
+              <div class="od-stack" style="--od-gap: 16px;">
+
+                <!-- Tus 4 Pilares del Mínimo Vital -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Tus 4 Pilares Indispensables</h1>
+                    <span class="status-pill vital">✓ Intocable</span>
+                  </div>
+                  <div class="od-grid" style="--od-cols: 2; --od-gap: 8px;">
+                    <div class="info-tonal-box">
+                      <span style="font-size: 12px; color: var(--text-muted);">Vivienda</span>
+                      <strong class="money-num" id="coach-pillar-housing" style="display: block; font-size: 14px;">$ 1.200.000</strong>
+                    </div>
+                    <div class="info-tonal-box">
+                      <span style="font-size: 12px; color: var(--text-muted);">Mercado Básico</span>
+                      <strong class="money-num" id="coach-pillar-food" style="display: block; font-size: 14px;">$ 700.000</strong>
+                    </div>
+                    <div class="info-tonal-box">
+                      <span style="font-size: 12px; color: var(--text-muted);">Servicios</span>
+                      <strong class="money-num" id="coach-pillar-services" style="display: block; font-size: 14px;">$ 300.000</strong>
+                    </div>
+                    <div class="info-tonal-box">
+                      <span style="font-size: 12px; color: var(--text-muted);">Transporte</span>
+                      <strong class="money-num" id="coach-pillar-transport" style="display: block; font-size: 14px;">$ 250.000</strong>
+                    </div>
+                  </div>
+                  <div class="od-row" style="justify-content: space-between;">
+                    <span style="font-size: 13px; color: var(--text-muted);">Total Mínimo Vital:</span>
+                    <strong class="money-num" id="coach-vital-total" style="font-size: 16px; color: var(--finance-vital);">$ 2.450.000</strong>
+                  </div>
+                </div>
+
+                <!-- Colchón de Tranquilidad (Meses de vida cubierta) -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <div class="od-row" style="justify-content: space-between;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Colchón de Tranquilidad</h2>
+                    <span class="status-pill growth" id="coach-cushion-badge">2.1 Meses</span>
+                  </div>
+                  <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+                    Tienes ahorrados <strong class="money-num" id="coach-cushion-saved">$ 5.145.000</strong> de tu meta de 3 meses (<strong class="money-num">$ 7.350.000</strong>). Si tus ingresos se detienen, tienes 2.1 meses de techo y comida 100% asegurados.
+                  </p>
+                  <button type="button" class="btn btn-secondary" id="btn-add-cushion-deposit" style="width: 100%;">
+                    Aportar $ 100.000 al Colchón
+                  </button>
+                </div>
+
+                <!-- Simulador "¿Me alcanza de verdad?" -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Simulador "¿Me alcanza de verdad?"</h2>
+                  <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+                    Evalúa una compra antes de pasar la tarjeta para saber si compromete tu Mínimo Vital.
+                  </p>
+
+                  <div class="od-stack" style="--od-gap: 8px;">
+                    <div>
+                      <label class="g-label" for="sim-amount-input">Monto de la compra (COP)</label>
+                      <input type="number" class="g-input mono" id="sim-amount-input" value="600000" step="50000" />
+                    </div>
+                    <div>
+                      <label class="g-label" for="sim-months-select">¿En cuántas cuotas mensuales?</label>
+                      <select class="g-select" id="sim-months-select">
+                        <option value="1">1 cuota (De contado)</option>
+                        <option value="3">3 cuotas</option>
+                        <option value="6" selected>6 cuotas</option>
+                        <option value="12">12 cuotas</option>
+                        <option value="24">24 cuotas</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Diagnóstico honesto en tiempo real -->
+                  <div class="info-tonal-box od-stack" id="sim-verdict-box" style="--od-gap: 4px;">
+                    <div class="od-row" style="justify-content: space-between;">
+                      <span style="font-size: 12px; color: var(--text-muted);">Cuota mensual estimada:</span>
+                      <strong class="money-num" id="sim-quota-preview" style="font-size: 15px;">$ 100.000/mes</strong>
+                    </div>
+                    <div id="sim-verdict-badge" class="status-pill growth" style="margin-top: 4px;">
+                      ✓ Compra Segura: No compromete tu Mínimo Vital ni tu ahorro.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Acceso Destacado a Reportes Visuales -->
+                <div class="g-card od-stack" style="--od-gap: 10px;">
+                  <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Reportes Visuales</h2>
+                  <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+                    Explora gráficos limpios de distribución de ingresos, tendencias y evolución histórica.
+                  </p>
+                  <button type="button" class="btn btn-primary" id="btn-open-visual-reports" style="width: 100%;">
+                    Abrir Reportes Visuales
+                  </button>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- ============================================================
+                 SCREEN 6: REPORTES VISUALES DEDICADOS (VISTA SATÉLITE)
+                 ============================================================ -->
+            <section class="app-screen" id="screen-reports">
+              <div class="od-stack" style="--od-gap: 16px;">
+
+                <div class="g-card od-row" style="justify-content: space-between;">
+                  <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Reportes Visuales</h1>
+                  <button type="button" class="btn btn-ghost" id="btn-back-to-coach" style="min-height: 48px; padding: 0 14px; font-size: 13px;">
+                    ← Volver al Plan Coach
+                  </button>
+                </div>
+
+                <!-- Gráfico de Dona: Distribución del Ingreso -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Distribución del Ingreso Mensual</h2>
+                  <div class="od-row" style="justify-content: center; padding: 10px 0;">
+                    <!-- Clean SVG Donut Chart -->
+                    <svg width="180" height="180" viewBox="0 0 42 42" role="img" aria-label="Distribución del Ingreso">
+                      <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--bg-elevated)" stroke-width="5"/>
+                      <!-- Mínimo Vital: 54% -->
+                      <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--finance-vital)" stroke-width="5" stroke-dasharray="54 46" stroke-dashoffset="25"/>
+                      <!-- Capacidad de Ahorro: 25% -->
+                      <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--finance-growth)" stroke-width="5" stroke-dasharray="25 75" stroke-dashoffset="71"/>
+                      <!-- Deudas: 10% -->
+                      <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--finance-danger)" stroke-width="5" stroke-dasharray="10 90" stroke-dashoffset="46"/>
+                      <!-- Gastos Libres: 11% -->
+                      <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--finance-warning)" stroke-width="5" stroke-dasharray="11 89" stroke-dashoffset="36"/>
+                      <text x="21" y="22" text-anchor="middle" font-size="6" font-weight="700" fill="var(--text-primary)">Noviembre</text>
+                    </svg>
+                  </div>
+                  <div class="od-grid" style="--od-cols: 2; --od-gap: 6px;">
+                    <span class="status-pill vital">54% Mínimo Vital</span>
+                    <span class="status-pill growth">25% Capacidad Ahorro</span>
+                    <span class="status-pill danger">10% Cuotas Deudas</span>
+                    <span class="status-pill warning">11% Gastos Libres</span>
+                  </div>
+                </div>
+
+                <!-- Tendencia de Ahorro Histórica -->
+                <div class="g-card od-stack" style="--od-gap: 12px;">
+                  <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Tasa de Ahorro Real (Últimos 4 Meses)</h2>
+                  <div class="info-tonal-box od-stack" style="--od-gap: 8px;">
+                    <div class="od-row" style="justify-content: space-between;">
+                      <span style="font-size: 12px; color: var(--text-secondary);">Agosto</span>
+                      <strong class="money-num" style="font-size: 13px;">14,0%</strong>
+                    </div>
+                    <div class="od-row" style="justify-content: space-between;">
+                      <span style="font-size: 12px; color: var(--text-secondary);">Septiembre</span>
+                      <strong class="money-num" style="font-size: 13px;">18,5%</strong>
+                    </div>
+                    <div class="od-row" style="justify-content: space-between;">
+                      <span style="font-size: 12px; color: var(--text-secondary);">Octubre</span>
+                      <strong class="money-num" style="font-size: 13px;">21,0%</strong>
+                    </div>
+                    <div class="od-row" style="justify-content: space-between;">
+                      <span style="font-size: 12px; color: var(--text-secondary);">Noviembre (Actual)</span>
+                      <strong class="money-num" style="font-size: 13px; color: var(--finance-growth);">24,9%</strong>
+                    </div>
+                  </div>
+                  <span class="status-pill growth">↑ Tendencia al alza (+10,9 pts en 4 meses)</span>
+                </div>
+
+              </div>
+            </section>
+
+          </div>
+
+          <!-- FLOATING ACTION BUTTON (FAB: "Anotar rápido" - 56dp) -->
+          <button type="button" class="guaca-fab" id="btn-quick-fab" aria-label="Anotar rápido">
+            <svg class="od-icon" style="--od-icon-size: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span>Anotar rápido</span>
+          </button>
+
+          <!-- BOTTOM SNACKBAR CON [DESHACER] -->
+          <div class="guaca-snackbar" id="app-snackbar" role="alert">
+            <span id="snackbar-message">Acción realizada correctamente</span>
+            <button type="button" class="snackbar-undo-btn" id="btn-snackbar-undo">DESHACER</button>
+          </div>
+
+          <!-- ANDROID 5-TAB BOTTOM NAVIGATION BAR -->
+          <nav class="guaca-bottom-nav" aria-label="Navegación principal de 5 pestañas">
+            <button type="button" class="nav-btn" data-nav="screen-home" aria-current="page">
+              <svg class="od-icon" style="--od-icon-size: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              </svg>
+              <span class="nav-btn-label">Inicio</span>
+            </button>
+
+            <button type="button" class="nav-btn" data-nav="screen-movements">
+              <svg class="od-icon" style="--od-icon-size: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"/>
+                <line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              <span class="nav-btn-label">Movimientos</span>
+            </button>
+
+            <button type="button" class="nav-btn" data-nav="screen-accounts">
+              <svg class="od-icon" style="--od-icon-size: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+              <span class="nav-btn-label">Cuentas</span>
+            </button>
+
+            <button type="button" class="nav-btn" data-nav="screen-budgets">
+              <svg class="od-icon" style="--od-icon-size: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20V10M18 20V4M6 20v-4"/>
+              </svg>
+              <span class="nav-btn-label">Presupuesto</span>
+            </button>
+
+            <button type="button" class="nav-btn" data-nav="screen-coach">
+              <svg class="od-icon" style="--od-icon-size: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+              </svg>
+              <span class="nav-btn-label">Plan Coach</span>
+            </button>
+          </nav>
+
+        </div>
+      </main>
+
+      <div class="gesture-bar" aria-hidden="true"></div>
+    </section>
+  </div>
+
+  <!-- ============================================================
+       MODAL 1: REGISTRO RÁPIDO (GASTO / INGRESO / TRASLADO DINÁMICO)
+       ============================================================ -->
+  <dialog class="guaca-dialog" id="dialog-quick-record">
+    <form method="dialog" id="form-quick-record" class="od-stack" style="--od-gap: 14px;">
+      <div class="od-row" style="justify-content: space-between;">
+        <h2 style="margin: 0; font-size: 18px;">Anotar Rápido</h2>
+        <button type="button" class="btn btn-ghost" id="btn-close-record" style="min-height: 48px; padding: 0 14px;">Cerrar</button>
+      </div>
+
+      <!-- Selector de Tipo: Gasto / Ingreso / Traslado -->
+      <div class="od-grid" style="--od-cols: 3; --od-gap: 6px;">
+        <button type="button" class="btn btn-secondary record-type-btn active" data-type="expense">Gasto</button>
+        <button type="button" class="btn btn-secondary record-type-btn" data-type="income">Ingreso</button>
+        <button type="button" class="btn btn-secondary record-type-btn" data-type="transfer">Traslado</button>
+      </div>
+
+      <div>
+        <label class="g-label" for="record-amount">Monto en pesos (COP)</label>
+        <input type="number" class="g-input mono" id="record-amount" placeholder="0" required step="1000" />
+      </div>
+
+      <div>
+        <label class="g-label" for="record-title">Descripción o Comercio</label>
+        <input type="text" class="g-input" id="record-title" placeholder="Ej. Almuerzo, Nequi, etc." required />
+      </div>
+
+      <!-- Campos para Gasto / Ingreso -->
+      <div id="record-normal-fields" class="od-stack" style="--od-gap: 10px;">
+        <div>
+          <label class="g-label" for="record-account">Cuenta a utilizar</label>
+          <select class="g-select" id="record-account">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+        <div>
+          <label class="g-label" for="record-pillar">Pilar Financiero</label>
+          <select class="g-select" id="record-pillar">
+            <option value="vital">Mínimo Vital (Vivienda / Mercado / Servicios / Transporte)</option>
+            <option value="free" selected>Gustos Libres y Ocio</option>
+            <option value="saving">Ahorro y Colchón</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Campos Dinámicos Exclusivos para Traslado -->
+      <div id="record-transfer-fields" class="od-stack" style="--od-gap: 10px; display: none;">
+        <div class="info-tonal-box od-stack" style="--od-gap: 8px;">
+          <div>
+            <label class="g-label" for="transfer-source-account">¿De dónde sale la plata?</label>
+            <select class="g-select" id="transfer-source-account">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <div style="text-align: center; color: var(--brand-primary); font-size: 16px;">↓</div>
+          <div>
+            <label class="g-label" for="transfer-target-account">¿A qué cuenta o colchón llega?</label>
+            <select class="g-select" id="transfer-target-account">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="btn-save-record" style="width: 100%;">
+        Guardar Movimiento
+      </button>
+    </form>
+  </dialog>
+
+  <!-- ============================================================
+       MODAL 2: AJUSTES Y RESPALDO LOCAL JSON
+       ============================================================ -->
+  <dialog class="guaca-dialog" id="dialog-settings">
+    <div class="od-stack" style="--od-gap: 16px;">
+      <div class="od-row" style="justify-content: space-between;">
+        <h2 style="margin: 0; font-size: 18px;">Ajustes y Respaldo</h2>
+        <button type="button" class="btn btn-ghost" id="btn-close-settings" style="min-height: 48px; padding: 0 14px;">Cerrar</button>
+      </div>
+
+      <div class="info-tonal-box od-stack" style="--od-gap: 8px;">
+        <strong style="font-size: 14px;">Respaldo local JSON</strong>
+        <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.35;">
+          Tus datos viven únicamente en tu teléfono. El archivo de respaldo es un JSON plano y portable para guardar en tus carpetas locales o transferir a otro celular.
+        </p>
+        <div class="od-stack" style="--od-gap: 8px; margin-top: 4px;">
+          <button type="button" class="btn btn-primary" id="btn-export-backup" style="width: 100%;">
+            Exportar Respaldo (guaca-respaldo.json)
+          </button>
+          <label class="btn btn-secondary" style="width: 100%; text-align: center; cursor: pointer;">
+            Importar Copia JSON
+            <input type="file" id="file-import-backup" accept=".json" style="display: none;" />
+          </label>
+        </div>
+      </div>
+
+      <div class="info-tonal-box od-stack" style="--od-gap: 8px;">
+        <strong style="font-size: 14px;">Configuración Inicial</strong>
+        <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">
+          Vuelve a calcular tu Mínimo Vital en 3 pasos con las 4 casillas indispensables.
+        </p>
+        <button type="button" class="btn btn-secondary" id="btn-restart-onboarding" style="width: 100%;">
+          Reiniciar Onboarding (3 Pasos)
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ============================================================
+       MODAL 3: AGREGAR BILLETERA / CUENTA
+       ============================================================ -->
+  <dialog class="guaca-dialog" id="dialog-new-wallet">
+    <form method="dialog" id="form-new-wallet" class="od-stack" style="--od-gap: 14px;">
+      <div class="od-row" style="justify-content: space-between;">
+        <h2 style="margin: 0; font-size: 18px;">Nueva Billetera o Cuenta</h2>
+        <button type="button" class="btn btn-ghost" id="btn-close-wallet-modal" style="min-height: 48px; padding: 0 14px;">Cerrar</button>
+      </div>
+
+      <div>
+        <label class="g-label" for="new-wallet-name">Nombre de la cuenta</label>
+        <input type="text" class="g-input" id="new-wallet-name" placeholder="Ej. Lulo Bank, Cajita Nu" required />
+      </div>
+
+      <div>
+        <label class="g-label" for="new-wallet-type">Tipo</label>
+        <select class="g-select" id="new-wallet-type">
+          <option value="bank">Cuenta Bancaria</option>
+          <option value="digital">Billetera Digital</option>
+          <option value="cash">Efectivo en mano</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="g-label" for="new-wallet-balance">Saldo Inicial (COP)</label>
+        <input type="number" class="g-input mono" id="new-wallet-balance" placeholder="0" required step="10000" />
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Crear Billetera</button>
+    </form>
+  </dialog>
+
+  <!-- ============================================================
+       MODAL 4: AGREGAR DEUDA (LENGUAJE DUMMIES)
+       ============================================================ -->
+  <dialog class="guaca-dialog" id="dialog-new-debt">
+    <form method="dialog" id="form-new-debt" class="od-stack" style="--od-gap: 14px;">
+      <div class="od-row" style="justify-content: space-between;">
+        <h2 style="margin: 0; font-size: 18px;">Nueva Deuda o Tarjeta</h2>
+        <button type="button" class="btn btn-ghost" id="btn-close-debt-modal" style="min-height: 48px; padding: 0 14px;">Cerrar</button>
+      </div>
+
+      <div>
+        <label class="g-label" for="new-debt-name">Nombre del compromiso</label>
+        <input type="text" class="g-input" id="new-debt-name" placeholder="Ej. Tarjeta Éxito, Crédito Moto" required />
+      </div>
+
+      <div>
+        <label class="g-label" for="new-debt-balance">Saldo total pendiente (COP)</label>
+        <input type="number" class="g-input mono" id="new-debt-balance" placeholder="0" required step="50000" />
+      </div>
+
+      <div>
+        <label class="g-label" for="new-debt-quota">Cuota mínima mensual (COP)</label>
+        <input type="number" class="g-input mono" id="new-debt-quota" placeholder="0" required step="10000" />
+      </div>
+
+      <div>
+        <label class="g-label" for="new-debt-interest">Costo mensual de intereses (aprox por c/ $100.000)</label>
+        <input type="number" class="g-input mono" id="new-debt-interest" value="2100" step="100" />
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar Deuda</button>
+    </form>
+  </dialog>
+
+  <!-- ============================================================
+       MODAL 5: DETALLE / EDITAR / ELIMINAR MOVIMIENTO
+       ============================================================ -->
+  <dialog class="guaca-dialog" id="dialog-movement-detail">
+    <div class="od-stack" style="--od-gap: 14px;">
+      <div class="od-row" style="justify-content: space-between;">
+        <h2 style="margin: 0; font-size: 18px;">Detalle del Movimiento</h2>
+        <button type="button" class="btn btn-ghost" id="btn-close-detail" style="min-height: 48px; padding: 0 14px;">Cerrar</button>
+      </div>
+
+      <div class="info-tonal-box od-stack" style="--od-gap: 4px;">
+        <span style="font-size: 12px; color: var(--text-muted);">Comercio o Concepto</span>
+        <strong id="detail-title" style="font-size: 16px;">Almuerzo Corriente</strong>
+        <span id="detail-meta" style="font-size: 12px; color: var(--text-secondary);">Bancolombia · Hoy</span>
+        <div class="money-num" id="detail-amount" style="font-size: 22px; font-weight: 800; margin-top: 6px;">- $ 18.500</div>
+      </div>
+
+      <div class="od-stack" style="--od-gap: 8px;">
+        <button type="button" class="btn btn-danger" id="btn-delete-movement-trigger" style="width: 100%;">
+          Eliminar Movimiento
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ============================================================
+       JAVASCRIPT FUNCIONAL COMPLETO
+       ============================================================ -->
+  <script>
+    (function () {
+      // ESTADO INICIAL DE LA APLICACIÓN
+      const state = {
+        isPrivate: localStorage.getItem("guaca_privacy") === "true",
+        isDark: localStorage.getItem("guaca_theme") === "dark",
+        onboardingDone: localStorage.getItem("guaca_onb_done") === "true",
+        activeFilter: "all",
+        activeDebtStrategy: "snowball",
+        selectedMovementId: null,
+        undoStack: null,
+
+        user: {
+          name: localStorage.getItem("guaca_user_name") || "Carlos",
+          income: Number(localStorage.getItem("guaca_user_income")) || 4500000,
+          housing: Number(localStorage.getItem("guaca_user_housing")) || 1200000,
+          food: Number(localStorage.getItem("guaca_user_food")) || 700000,
+          services: Number(localStorage.getItem("guaca_user_services")) || 300000,
+          transport: Number(localStorage.getItem("guaca_user_transport")) || 250000,
+        },
+
+        wallets: [
+          { id: "w-1", name: "Bancolombia Ahorros", type: "bank", balance: 3420000 },
+          { id: "w-2", name: "Nequi", type: "digital", balance: 850000 },
+          { id: "w-3", name: "Daviplata", type: "digital", balance: 450000 },
+          { id: "w-4", name: "Efectivo en mano", type: "cash", balance: 200000 },
+          { id: "w-5", name: "Colchón de Tranquilidad", type: "vault", balance: 4000000 },
+        ],
+
+        debts: [
+          { id: "d-1", name: "Tarjeta Visa", balance: 1250000, quota: 180000, interestCost: 26250 },
+          { id: "d-2", name: "Crédito Libre Inversión", balance: 3200000, quota: 250000, interestCost: 48000 },
+        ],
+
+        subscriptions: [
+          { id: "s-1", name: "Streaming Video", monthly: 35000 },
+          { id: "s-2", name: "Música Digital", monthly: 18900 },
+          { id: "s-3", name: "Café diario de panadería", monthly: 150000 },
+          { id: "s-4", name: "Gimnasio", monthly: 80000 },
+        ],
+
+        budgets: [
+          { id: "b-1", category: "Alimentación y Mercado", limit: 800000, spent: 700000 },
+          { id: "b-2", category: "Servicios e Internet", limit: 300000, spent: 280000 },
+          { id: "b-3", category: "Transporte Esencial", limit: 250000, spent: 190000 },
+          { id: "b-4", category: "Ocio y Salidas", limit: 350000, spent: 340000 },
+        ],
+
+        movements: [
+          { id: "m-1", title: "Mercado Olímpica", category: "Mercado", account: "w-1", amount: -185000, type: "expense", pillar: "vital", date: "Hoy" },
+          { id: "m-2", title: "Café de panadería", category: "Ocio", account: "w-2", amount: -18500, type: "expense", pillar: "free", date: "Hoy" },
+          { id: "m-3", title: "Pago Quincena Nómina", category: "Ingreso", account: "w-1", amount: 2250000, type: "income", pillar: "saving", date: "Ayer" },
+          { id: "m-4", title: "Pago Recibo de Energía", category: "Servicios", account: "w-1", amount: -145000, type: "expense", pillar: "vital", date: "Esta semana" },
+          { id: "m-5", title: "Retiro para Efectivo", category: "Traslado", account: "w-1", amount: -200000, type: "transfer", pillar: "vital", date: "Esta semana" },
+        ],
+      };
+
+      // HELPERS
+      function escapeHTML(str) {
+        if (!str) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function formatCOP(num) {
+        if (state.isPrivate) return "$ •••••••";
+        const sign = num < 0 ? "- " : "";
+        const absVal = Math.abs(num);
+        return sign + "$ " + absVal.toLocaleString("es-CO");
+      }
+
+      function getVitalTotal() {
+        return state.user.housing + state.user.food + state.user.services + state.user.transport;
+      }
+
+      function getDebtsQuotaTotal() {
+        return state.debts.reduce(function (acc, d) { return acc + d.quota; }, 0);
+      }
+
+      function getTotalConsolidated() {
+        return state.wallets.reduce(function (acc, w) { return acc + w.balance; }, 0);
+      }
+
+      function getTotalDebtBalance() {
+        return state.debts.reduce(function (acc, d) { return acc + d.balance; }, 0);
+      }
+
+      function getFreeAvailable() {
+        const vital = getVitalTotal();
+        const debtsQuota = getDebtsQuotaTotal();
+        // Gastos del mes clasificados como ocio/libres
+        const freeExpenses = state.movements
+          .filter(function (m) { return m.type === "expense" && m.pillar === "free"; })
+          .reduce(function (acc, m) { return acc + Math.abs(m.amount); }, 0);
+
+        const net = state.user.income - vital - debtsQuota - freeExpenses;
+        return Math.max(0, net);
+      }
+
+      // SNACKBAR
+      let snackbarTimeout = null;
+      function showSnackbar(msg, undoFn) {
+        const snackbar = document.getElementById("app-snackbar");
+        const msgEl = document.getElementById("snackbar-message");
+        msgEl.textContent = msg;
+
+        state.undoStack = undoFn || null;
+
+        snackbar.classList.add("show");
+        if (snackbarTimeout) clearTimeout(snackbarTimeout);
+        snackbarTimeout = setTimeout(function () {
+          snackbar.classList.remove("show");
+          state.undoStack = null;
+        }, 4500);
+      }
+
+      document.getElementById("btn-snackbar-undo").addEventListener("click", function () {
+        if (typeof state.undoStack === "function") {
+          state.undoStack();
+          state.undoStack = null;
+        }
+        document.getElementById("app-snackbar").classList.remove("show");
+      });
+
+      // TEMA Y PRIVACIDAD
+      const root = document.documentElement;
+      if (state.isDark) root.classList.add("dark");
+
+      document.getElementById("btn-theme-toggle").addEventListener("click", function () {
+        state.isDark = !state.isDark;
+        root.classList.toggle("dark", state.isDark);
+        localStorage.setItem("guaca_theme", state.isDark ? "dark" : "light");
+      });
+
+      document.getElementById("btn-privacy-toggle").addEventListener("click", function () {
+        state.isPrivate = !state.isPrivate;
+        localStorage.setItem("guaca_privacy", state.isPrivate ? "true" : "false");
+        renderAll();
+      });
+
+      // NAVEGACIÓN
+      function switchScreen(screenId) {
+        document.querySelectorAll(".app-screen").forEach(function (s) {
+          s.classList.remove("active");
+        });
+        const target = document.getElementById(screenId);
+        if (target) {
+          target.classList.add("active");
+          document.getElementById("screen-container").scrollTop = 0;
+        }
+
+        document.querySelectorAll(".nav-btn").forEach(function (btn) {
+          if (btn.getAttribute("data-nav") === screenId) {
+            btn.setAttribute("aria-current", "page");
+          } else {
+            btn.removeAttribute("aria-current");
+          }
+        });
+
+        // Ocultar FAB en onboarding o reportes si se prefiere
+        const fab = document.getElementById("btn-quick-fab");
+        if (screenId === "screen-onboarding" || screenId === "screen-reports") {
+          fab.style.display = "none";
+        } else {
+          fab.style.display = "inline-flex";
+        }
+      }
+
+      document.querySelectorAll(".nav-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const navTarget = btn.getAttribute("data-nav");
+          switchScreen(navTarget);
+        });
+      });
+
+      document.getElementById("btn-see-all-movements").addEventListener("click", function () {
+        switchScreen("screen-movements");
+      });
+
+      document.getElementById("btn-open-visual-reports").addEventListener("click", function () {
+        switchScreen("screen-reports");
+      });
+
+      document.getElementById("btn-back-to-coach").addEventListener("click", function () {
+        switchScreen("screen-coach");
+      });
+
+      // ONBOARDING WIZARD
+      function updateOnboardingCalc() {
+        const housing = Number(document.getElementById("onb-vital-housing").value) || 0;
+        const food = Number(document.getElementById("onb-vital-food").value) || 0;
+        const services = Number(document.getElementById("onb-vital-services").value) || 0;
+        const transport = Number(document.getElementById("onb-vital-transport").value) || 0;
+        const income = Number(document.getElementById("onb-income-input").value) || 0;
+
+        const sum = housing + food + services + transport;
+        const savings = Math.max(0, income - sum);
+
+        document.getElementById("onb-vital-sum").textContent = "$ " + sum.toLocaleString("es-CO");
+        document.getElementById("onb-savings-preview").textContent = "$ " + savings.toLocaleString("es-CO");
+
+        const alertBox = document.getElementById("onb-vital-alert");
+        if (sum > income && income > 0) {
+          alertBox.style.display = "inline-flex";
+        } else {
+          alertBox.style.display = "none";
+        }
+      }
+
+      document.querySelectorAll(".onb-vital-calc").forEach(function (inp) {
+        inp.addEventListener("input", updateOnboardingCalc);
+      });
+
+      document.querySelectorAll(".onb-quick-income").forEach(function (b) {
+        b.addEventListener("click", function () {
+          document.getElementById("onb-income-input").value = b.getAttribute("data-val");
+          updateOnboardingCalc();
+        });
+      });
+
+      document.getElementById("btn-onb-to-step-2").addEventListener("click", function () {
+        document.getElementById("onb-step-1").style.display = "none";
+        document.getElementById("onb-step-2").style.display = "flex";
+      });
+
+      document.getElementById("btn-onb-back-to-1").addEventListener("click", function () {
+        document.getElementById("onb-step-2").style.display = "none";
+        document.getElementById("onb-step-1").style.display = "flex";
+      });
+
+      document.getElementById("btn-onb-to-step-3").addEventListener("click", function () {
+        document.getElementById("onb-step-2").style.display = "none";
+        document.getElementById("onb-step-3").style.display = "flex";
+        updateOnboardingCalc();
+      });
+
+      document.getElementById("btn-onb-back-to-2").addEventListener("click", function () {
+        document.getElementById("onb-step-3").style.display = "none";
+        document.getElementById("onb-step-2").style.display = "flex";
+      });
+
+      function saveOnboardingData() {
+        state.user.name = document.getElementById("onb-name-input").value.trim() || "Carlos";
+        state.user.income = Number(document.getElementById("onb-income-input").value) || 4500000;
+        state.user.housing = Number(document.getElementById("onb-vital-housing").value) || 1200000;
+        state.user.food = Number(document.getElementById("onb-vital-food").value) || 700000;
+        state.user.services = Number(document.getElementById("onb-vital-services").value) || 300000;
+        state.user.transport = Number(document.getElementById("onb-vital-transport").value) || 250000;
+
+        localStorage.setItem("guaca_user_name", state.user.name);
+        localStorage.setItem("guaca_user_income", state.user.income);
+        localStorage.setItem("guaca_user_housing", state.user.housing);
+        localStorage.setItem("guaca_user_food", state.user.food);
+        localStorage.setItem("guaca_user_services", state.user.services);
+        localStorage.setItem("guaca_user_transport", state.user.transport);
+        localStorage.setItem("guaca_onb_done", "true");
+        state.onboardingDone = true;
+
+        renderAll();
+        switchScreen("screen-home");
+        showSnackbar("Bienvenido a Guaca, " + state.user.name + ". Tu Mínimo Vital está blindado.");
+      }
+
+      document.getElementById("btn-onb-finish").addEventListener("click", saveOnboardingData);
+
+      document.getElementById("btn-onb-skip-example").addEventListener("click", function () {
+        document.getElementById("onb-name-input").value = "Carlos";
+        document.getElementById("onb-income-input").value = "4500000";
+        document.getElementById("onb-vital-housing").value = "1200000";
+        document.getElementById("onb-vital-food").value = "700000";
+        document.getElementById("onb-vital-services").value = "300000";
+        document.getElementById("onb-vital-transport").value = "250000";
+        saveOnboardingData();
+      });
+
+      // CONSEJO DEL COACH (BLINDAR PLATA)
+      document.getElementById("btn-coach-shield-action").addEventListener("click", function () {
+        const shieldAmount = 150000;
+        // Restar de cuenta Bancolombia y sumar al colchón
+        const w1 = state.wallets.find(function (w) { return w.id === "w-1"; });
+        const w5 = state.wallets.find(function (w) { return w.id === "w-5"; });
+        if (w1 && w5 && w1.balance >= shieldAmount) {
+          w1.balance -= shieldAmount;
+          w5.balance += shieldAmount;
+
+          const newMov = {
+            id: "m-" + Date.now(),
+            title: "Blindaje Colchón de Tranquilidad",
+            category: "Ahorro",
+            account: "w-5",
+            amount: shieldAmount,
+            type: "transfer",
+            pillar: "saving",
+            date: "Hoy",
+          };
+          state.movements.unshift(newMov);
+          renderAll();
+
+          showSnackbar("Has blindado $ 150.000 para el Colchón de Tranquilidad.", function () {
+            // Undo function
+            w1.balance += shieldAmount;
+            w5.balance -= shieldAmount;
+            state.movements = state.movements.filter(function (m) { return m.id !== newMov.id; });
+            renderAll();
+          });
+        }
+      });
+
+      // SIMULADOR DE COMPRAS
+      function updateSimulator() {
+        const amount = Number(document.getElementById("sim-amount-input").value) || 0;
+        const months = Number(document.getElementById("sim-months-select").value) || 1;
+        const quota = Math.round(amount / months);
+        const freeAvailable = getFreeAvailable();
+
+        document.getElementById("sim-quota-preview").textContent = "$ " + quota.toLocaleString("es-CO") + "/mes";
+        const badge = document.getElementById("sim-verdict-badge");
+
+        if (quota <= freeAvailable * 0.4) {
+          badge.className = "status-pill growth";
+          badge.textContent = "✓ Compra Segura: No compromete tu Mínimo Vital ni tu ahorro.";
+        } else if (quota <= freeAvailable) {
+          badge.className = "status-pill warning";
+          badge.textContent = "! Cuidado: Esta cuota consume más del 50% de tu ahorro mensual.";
+        } else {
+          badge.className = "status-pill danger";
+          badge.textContent = "✕ Peligro: Esta cuota pondría en riesgo tu Mínimo Vital.";
+        }
+      }
+
+      document.getElementById("sim-amount-input").addEventListener("input", updateSimulator);
+      document.getElementById("sim-months-select").addEventListener("change", updateSimulator);
+
+      // APORTE AL COLCHÓN DESDE COACH
+      document.getElementById("btn-add-cushion-deposit").addEventListener("click", function () {
+        const deposit = 100000;
+        const w1 = state.wallets.find(function (w) { return w.id === "w-1"; });
+        const w5 = state.wallets.find(function (w) { return w.id === "w-5"; });
+        if (w1 && w5 && w1.balance >= deposit) {
+          w1.balance -= deposit;
+          w5.balance += deposit;
+          renderAll();
+          showSnackbar("Aporte de $ 100.000 guardado en tu Colchón de Tranquilidad.", function () {
+            w1.balance += deposit;
+            w5.balance -= deposit;
+            renderAll();
+          });
+        }
+      });
+
+      // ESTRATEGIA DE DEUDAS
+      document.querySelectorAll(".debt-strategy-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll(".debt-strategy-btn").forEach(function (b) { b.classList.remove("active"); });
+          btn.classList.add("active");
+          state.activeDebtStrategy = btn.getAttribute("data-strat");
+          const explainer = document.getElementById("debt-strategy-explainer");
+          if (state.activeDebtStrategy === "snowball") {
+            explainer.textContent = "Victorias Rápidas: Enfócate en liquidar primero la deuda más pequeña para ganar victorias inmediatas.";
+          } else {
+            explainer.textContent = "Ahorra Más Interés: Ataca primero la deuda con el interés más costoso para ahorrar más dinero.";
+          }
+          renderDebts();
+        });
+      });
+
+      // MODAL REGISTRO RÁPIDO
+      const dialogRecord = document.getElementById("dialog-quick-record");
+      let currentRecordType = "expense";
+
+      document.getElementById("btn-quick-fab").addEventListener("click", function () {
+        populateRecordAccounts();
+        document.getElementById("record-amount").value = "";
+        document.getElementById("record-title").value = "";
+        dialogRecord.showModal();
+      });
+
+      document.getElementById("btn-quick-transfer-trigger").addEventListener("click", function () {
+        populateRecordAccounts();
+        document.querySelectorAll(".record-type-btn").forEach(function (b) { b.classList.remove("active"); });
+        document.querySelector(".record-type-btn[data-type='transfer']").classList.add("active");
+        currentRecordType = "transfer";
+        document.getElementById("record-normal-fields").style.display = "none";
+        document.getElementById("record-transfer-fields").style.display = "flex";
+        dialogRecord.showModal();
+      });
+
+      document.getElementById("btn-close-record").addEventListener("click", function () {
+        dialogRecord.close();
+      });
+
+      document.querySelectorAll(".record-type-btn").forEach(function (b) {
+        b.addEventListener("click", function () {
+          document.querySelectorAll(".record-type-btn").forEach(function (btn) { btn.classList.remove("active"); });
+          b.classList.add("active");
+          currentRecordType = b.getAttribute("data-type");
+
+          if (currentRecordType === "transfer") {
+            document.getElementById("record-normal-fields").style.display = "none";
+            document.getElementById("record-transfer-fields").style.display = "flex";
+          } else {
+            document.getElementById("record-normal-fields").style.display = "flex";
+            document.getElementById("record-transfer-fields").style.display = "none";
+          }
+        });
+      });
+
+      function populateRecordAccounts() {
+        const accSelect = document.getElementById("record-account");
+        const srcSelect = document.getElementById("transfer-source-account");
+        const tgtSelect = document.getElementById("transfer-target-account");
+
+        accSelect.innerHTML = "";
+        srcSelect.innerHTML = "";
+        tgtSelect.innerHTML = "";
+
+        state.wallets.forEach(function (w) {
+          const opt = document.createElement("option");
+          opt.value = w.id;
+          opt.textContent = w.name + " (" + formatCOP(w.balance) + ")";
+          accSelect.appendChild(opt);
+
+          const optSrc = opt.cloneNode(true);
+          srcSelect.appendChild(optSrc);
+
+          const optTgt = opt.cloneNode(true);
+          tgtSelect.appendChild(optTgt);
+        });
+
+        if (tgtSelect.options.length > 1) {
+          tgtSelect.selectedIndex = 1;
+        }
+      }
+
+      document.getElementById("form-quick-record").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const amountVal = Number(document.getElementById("record-amount").value);
+        const titleVal = document.getElementById("record-title").value.trim();
+
+        if (!amountVal || amountVal <= 0 || !titleVal) return;
+
+        if (currentRecordType === "transfer") {
+          const srcId = document.getElementById("transfer-source-account").value;
+          const tgtId = document.getElementById("transfer-target-account").value;
+
+          if (srcId === tgtId) {
+            alert("La cuenta de origen y destino deben ser distintas.");
+            return;
+          }
+
+          const srcAcc = state.wallets.find(function (w) { return w.id === srcId; });
+          const tgtAcc = state.wallets.find(function (w) { return w.id === tgtId; });
+
+          if (srcAcc && tgtAcc) {
+            srcAcc.balance -= amountVal;
+            tgtAcc.balance += amountVal;
+
+            const newMov = {
+              id: "m-" + Date.now(),
+              title: "Traslado: " + titleVal,
+              category: "Traslado",
+              account: srcId,
+              amount: -amountVal,
+              type: "transfer",
+              pillar: "vital",
+              date: "Hoy",
+            };
+            state.movements.unshift(newMov);
+
+            renderAll();
+            dialogRecord.close();
+            showSnackbar("Traslado de " + formatCOP(amountVal) + " realizado con éxito.", function () {
+              srcAcc.balance += amountVal;
+              tgtAcc.balance -= amountVal;
+              state.movements = state.movements.filter(function (m) { return m.id !== newMov.id; });
+              renderAll();
+            });
+          }
+        } else if (currentRecordType === "expense") {
+          const accId = document.getElementById("record-account").value;
+          const pillarVal = document.getElementById("record-pillar").value;
+          const acc = state.wallets.find(function (w) { return w.id === accId; });
+
+          if (acc) {
+            acc.balance -= amountVal;
+            const newMov = {
+              id: "m-" + Date.now(),
+              title: titleVal,
+              category: pillarVal === "vital" ? "Mínimo Vital" : "Gasto Libre",
+              account: accId,
+              amount: -amountVal,
+              type: "expense",
+              pillar: pillarVal,
+              date: "Hoy",
+            };
+            state.movements.unshift(newMov);
+
+            renderAll();
+            dialogRecord.close();
+            showSnackbar("Gasto de " + formatCOP(amountVal) + " anotado.", function () {
+              acc.balance += amountVal;
+              state.movements = state.movements.filter(function (m) { return m.id !== newMov.id; });
+              renderAll();
+            });
+          }
+        } else if (currentRecordType === "income") {
+          const accId = document.getElementById("record-account").value;
+          const acc = state.wallets.find(function (w) { return w.id === accId; });
+
+          if (acc) {
+            acc.balance += amountVal;
+            const newMov = {
+              id: "m-" + Date.now(),
+              title: titleVal,
+              category: "Ingreso",
+              account: accId,
+              amount: amountVal,
+              type: "income",
+              pillar: "saving",
+              date: "Hoy",
+            };
+            state.movements.unshift(newMov);
+
+            renderAll();
+            dialogRecord.close();
+            showSnackbar("Ingreso de " + formatCOP(amountVal) + " registrado.", function () {
+              acc.balance -= amountVal;
+              state.movements = state.movements.filter(function (m) { return m.id !== newMov.id; });
+              renderAll();
+            });
+          }
+        }
+      });
+
+      // MODAL AJUSTES Y RESPALDO LOCAL JSON
+      const dialogSettings = document.getElementById("dialog-settings");
+      document.getElementById("btn-open-settings").addEventListener("click", function () {
+        dialogSettings.showModal();
+      });
+      document.getElementById("btn-close-settings").addEventListener("click", function () {
+        dialogSettings.close();
+      });
+
+      // Exportar JSON local
+      document.getElementById("btn-export-backup").addEventListener("click", function () {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+        const dateStr = new Date().toISOString().split("T")[0];
+        const downloadAnchor = document.createElement("a");
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "guaca-respaldo-" + dateStr + ".json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        showSnackbar("Respaldo local JSON descargado.");
+      });
+
+      // Importar JSON local
+      document.getElementById("file-import-backup").addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          try {
+            const imported = JSON.parse(evt.target.result);
+            if (imported.wallets && imported.movements) {
+              state.wallets = imported.wallets;
+              state.movements = imported.movements;
+              if (imported.debts) state.debts = imported.debts;
+              if (imported.user) state.user = imported.user;
+              renderAll();
+              dialogSettings.close();
+              showSnackbar("Respaldo restaurado con éxito.");
+            }
+          } catch (err) {
+            alert("El archivo no es un respaldo válido de Guaca.");
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById("btn-restart-onboarding").addEventListener("click", function () {
+        dialogSettings.close();
+        document.getElementById("onb-step-1").style.display = "flex";
+        document.getElementById("onb-step-2").style.display = "none";
+        document.getElementById("onb-step-3").style.display = "none";
+        switchScreen("screen-onboarding");
+      });
+
+      // MODAL NUEVA BILLETERA
+      const dialogWallet = document.getElementById("dialog-new-wallet");
+      document.getElementById("btn-add-wallet").addEventListener("click", function () {
+        dialogWallet.showModal();
+      });
+      document.getElementById("btn-close-wallet-modal").addEventListener("click", function () {
+        dialogWallet.close();
+      });
+
+      document.getElementById("form-new-wallet").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const name = document.getElementById("new-wallet-name").value.trim();
+        const type = document.getElementById("new-wallet-type").value;
+        const bal = Number(document.getElementById("new-wallet-balance").value) || 0;
+
+        if (name) {
+          state.wallets.push({
+            id: "w-" + Date.now(),
+            name: name,
+            type: type,
+            balance: bal,
+          });
+          renderWallets();
+          renderHome();
+          dialogWallet.close();
+          showSnackbar("Billetera '" + name + "' agregada.");
+        }
+      });
+
+      // MODAL NUEVA DEUDA
+      const dialogDebt = document.getElementById("dialog-new-debt");
+      document.getElementById("btn-add-debt").addEventListener("click", function () {
+        dialogDebt.showModal();
+      });
+      document.getElementById("btn-close-debt-modal").addEventListener("click", function () {
+        dialogDebt.close();
+      });
+
+      document.getElementById("form-new-debt").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const name = document.getElementById("new-debt-name").value.trim();
+        const bal = Number(document.getElementById("new-debt-balance").value) || 0;
+        const quota = Number(document.getElementById("new-debt-quota").value) || 0;
+        const interest = Number(document.getElementById("new-debt-interest").value) || 2100;
+
+        if (name && bal > 0) {
+          state.debts.push({
+            id: "d-" + Date.now(),
+            name: name,
+            balance: bal,
+            quota: quota,
+            interestCost: interest,
+          });
+          renderDebts();
+          renderHome();
+          dialogDebt.close();
+          showSnackbar("Deuda '" + name + "' registrada.");
+        }
+      });
+
+      // DETALLE / ELIMINAR MOVIMIENTO
+      const dialogDetail = document.getElementById("dialog-movement-detail");
+      document.getElementById("btn-close-detail").addEventListener("click", function () {
+        dialogDetail.close();
+      });
+
+      function openMovementDetail(movId) {
+        state.selectedMovementId = movId;
+        const mov = state.movements.find(function (m) { return m.id === movId; });
+        if (!mov) return;
+
+        document.getElementById("detail-title").textContent = mov.title;
+        const acc = state.wallets.find(function (w) { return w.id === mov.account; });
+        const accName = acc ? acc.name : "Cuenta";
+        document.getElementById("detail-meta").textContent = accName + " · " + mov.date;
+        document.getElementById("detail-amount").textContent = formatCOP(mov.amount);
+        document.getElementById("detail-amount").style.color = mov.amount < 0 ? "var(--text-primary)" : "var(--finance-growth)";
+
+        dialogDetail.showModal();
+      }
+
+      document.getElementById("btn-delete-movement-trigger").addEventListener("click", function () {
+        if (!state.selectedMovementId) return;
+        const idx = state.movements.findIndex(function (m) { return m.id === state.selectedMovementId; });
+        if (idx !== -1) {
+          const removed = state.movements[idx];
+          state.movements.splice(idx, 1);
+
+          // Revertir saldo de la cuenta
+          const acc = state.wallets.find(function (w) { return w.id === removed.account; });
+          if (acc) {
+            acc.balance -= removed.amount;
+          }
+
+          renderAll();
+          dialogDetail.close();
+
+          showSnackbar("Movimiento eliminado.", function () {
+            // Undo: reinsert movement and revert account balance
+            state.movements.splice(idx, 0, removed);
+            if (acc) {
+              acc.balance += removed.amount;
+            }
+            renderAll();
+          });
+        }
+      });
+
+      // BUSCADOR Y FILTROS DE MOVIMIENTOS
+      document.getElementById("movements-search-input").addEventListener("input", function () {
+        renderMovements();
+      });
+
+      document.querySelectorAll(".filter-chip").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          document.querySelectorAll(".filter-chip").forEach(function (c) { c.classList.remove("active"); });
+          chip.classList.add("active");
+          state.activeFilter = chip.getAttribute("data-filter");
+          renderMovements();
+        });
+      });
+
+      // SUSCRIPCIONES: AGREGAR Y ELIMINAR
+      document.getElementById("btn-add-subscription").addEventListener("click", function () {
+        const name = prompt("Nombre de la suscripción o gasto hormiga (ej. Gimnasio, Café):");
+        if (!name) return;
+        const valStr = prompt("Costo mensual aproximado en COP:");
+        const val = Number(valStr);
+        if (val && val > 0) {
+          state.subscriptions.push({
+            id: "s-" + Date.now(),
+            name: name,
+            monthly: val,
+          });
+          renderSubscriptions();
+          showSnackbar("Suscripción agregada. Impacto: " + formatCOP(val * 12) + " al año.");
+        }
+      });
+
+      // RENDERIZADO REACTIVO COMPLETO
+      function renderHome() {
+        const freeAvailable = getFreeAvailable();
+        const vital = getVitalTotal();
+        const debtsQuota = getDebtsQuotaTotal();
+        const consolidated = getTotalConsolidated();
+
+        document.getElementById("home-free-available").textContent = formatCOP(freeAvailable);
+        document.getElementById("home-vital-protected").textContent = formatCOP(vital);
+        document.getElementById("home-debts-quota").textContent = formatCOP(debtsQuota);
+        document.getElementById("home-total-consolidated").textContent = formatCOP(consolidated);
+
+        // Semáforo Estado
+        const badge = document.getElementById("home-health-badge");
+        if (freeAvailable >= state.user.income * 0.2) {
+          badge.className = "status-pill growth";
+          badge.textContent = "✓ Estado de Paz";
+        } else if (freeAvailable > 0) {
+          badge.className = "status-pill warning";
+          badge.textContent = "! Estado de Alerta";
+        } else {
+          badge.className = "status-pill danger";
+          badge.textContent = "✕ Riesgo Mínimo Vital";
+        }
+
+        // Últimos 3 movimientos
+        const recentContainer = document.getElementById("home-recent-movements-list");
+        recentContainer.innerHTML = "";
+        const recent = state.movements.slice(0, 3);
+        recent.forEach(function (m) {
+          const row = createMovementRow(m);
+          recentContainer.appendChild(row);
+        });
+      }
+
+      function createMovementRow(m) {
+        const item = document.createElement("div");
+        item.className = "tx-item";
+        item.addEventListener("click", function () {
+          openMovementDetail(m.id);
+        });
+
+        const iconBox = document.createElement("div");
+        iconBox.className = "tx-icon-box";
+        iconBox.innerHTML = m.type === "income"
+          ? '<svg class="od-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
+          : (m.type === "transfer"
+            ? '<svg class="od-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4"/></svg>'
+            : '<svg class="od-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>');
+
+        const info = document.createElement("div");
+        info.className = "od-fill";
+        const acc = state.wallets.find(function (w) { return w.id === m.account; });
+        const accName = acc ? acc.name : "Cuenta";
+        info.innerHTML = '<strong style="display: block; font-size: 14px;">' + escapeHTML(m.title) + '</strong>'
+          + '<span style="font-size: 12px; color: var(--text-secondary);">' + escapeHTML(accName) + ' · ' + escapeHTML(m.date) + '</span>';
+
+        const amountCol = document.createElement("div");
+        amountCol.style.textAlign = "right";
+        const color = m.amount > 0 ? "var(--finance-growth)" : "var(--text-primary)";
+        amountCol.innerHTML = '<strong class="money-num" style="display: block; font-size: 14px; color: ' + color + ';">' + formatCOP(m.amount) + '</strong>'
+          + '<span class="status-pill ' + (m.pillar === "vital" ? "vital" : (m.pillar === "saving" ? "growth" : "warning")) + '" style="font-size: 12px; padding: 2px 8px;">'
+          + (m.pillar === "vital" ? "Intocable" : (m.pillar === "saving" ? "Ahorro" : "Libre")) + '</span>';
+
+        item.appendChild(iconBox);
+        item.appendChild(info);
+        item.appendChild(amountCol);
+        return item;
+      }
+
+      function renderMovements() {
+        const listContainer = document.getElementById("movements-full-list");
+        const emptyState = document.getElementById("movements-empty-state");
+        const term = document.getElementById("movements-search-input").value.toLowerCase().trim();
+
+        listContainer.innerHTML = "";
+        const filtered = state.movements.filter(function (m) {
+          const matchTerm = m.title.toLowerCase().includes(term) || m.category.toLowerCase().includes(term);
+          const matchPillar = state.activeFilter === "all" || m.pillar === state.activeFilter;
+          return matchTerm && matchPillar;
+        });
+
+        if (filtered.length === 0) {
+          emptyState.style.display = "block";
+        } else {
+          emptyState.style.display = "none";
+          filtered.forEach(function (m) {
+            listContainer.appendChild(createMovementRow(m));
+          });
+        }
+      }
+
+      function renderWallets() {
+        const container = document.getElementById("wallets-list-container");
+        container.innerHTML = "";
+
+        state.wallets.forEach(function (w) {
+          const row = document.createElement("div");
+          row.className = "info-tonal-box od-row";
+          row.style.justifyContent = "space-between";
+
+          row.innerHTML = '<div class="od-field">'
+            + '<strong>' + escapeHTML(w.name) + '</strong>'
+            + '<span style="font-size: 12px; color: var(--text-secondary);">'
+            + (w.type === "bank" ? "Bancaria" : (w.type === "digital" ? "Billetera digital" : (w.type === "vault" ? "Colchón de tranquilidad" : "Efectivo"))) + '</span>'
+            + '</div>'
+            + '<strong class="money-num" style="font-size: 15px; color: ' + (w.type === "vault" ? "var(--finance-vital)" : "var(--text-primary)") + ';">'
+            + formatCOP(w.balance) + '</strong>';
+
+          container.appendChild(row);
+        });
+
+        // Patrimonio neto
+        const net = getTotalConsolidated() - getTotalDebtBalance();
+        document.getElementById("accounts-net-wealth").textContent = formatCOP(net);
+      }
+
+      function renderDebts() {
+        const container = document.getElementById("debts-list-container");
+        container.innerHTML = "";
+
+        // Ordenar según estrategia
+        const sortedDebts = [...state.debts].sort(function (a, b) {
+          if (state.activeDebtStrategy === "snowball") {
+            return a.balance - b.balance; // menor saldo primero
+          } else {
+            return b.interestCost - a.interestCost; // mayor interés primero
+          }
+        });
+
+        sortedDebts.forEach(function (d) {
+          const row = document.createElement("div");
+          row.className = "info-tonal-box od-stack";
+          row.style.gap = "6px";
+
+          row.innerHTML = '<div class="od-row" style="justify-content: space-between;">'
+            + '<strong>' + escapeHTML(d.name) + '</strong>'
+            + '<span class="status-pill danger">Cuota: ' + formatCOP(d.quota) + '/mes</span>'
+            + '</div>'
+            + '<div class="od-row" style="justify-content: space-between;">'
+            + '<span style="font-size: 12px; color: var(--text-muted);">Saldo pendiente:</span>'
+            + '<strong class="money-num" style="font-size: 14px;">' + formatCOP(d.balance) + '</strong>'
+            + '</div>'
+            + '<span style="font-size: 12px; color: var(--finance-warning);">'
+            + '! Pagás ~' + formatCOP(d.interestCost) + '/mes de interés por cada $100.000 prestados</span>';
+
+          container.appendChild(row);
+        });
+      }
+
+      function renderBudgets() {
+        const container = document.getElementById("budgets-category-list");
+        container.innerHTML = "";
+
+        state.budgets.forEach(function (b) {
+          const pct = Math.min(100, Math.round((b.spent / b.limit) * 100));
+          const colorClass = pct > 90 ? "var(--finance-danger)" : (pct > 75 ? "var(--finance-warning)" : "var(--finance-growth)");
+
+          const item = document.createElement("div");
+          item.className = "info-tonal-box od-stack";
+          item.style.gap = "6px";
+
+          item.innerHTML = '<div class="od-row" style="justify-content: space-between;">'
+            + '<strong>' + escapeHTML(b.category) + '</strong>'
+            + '<span class="money-num" style="font-size: 13px; color: ' + colorClass + ';">' + formatCOP(b.spent) + ' / ' + formatCOP(b.limit) + ' (' + pct + '%)</span>'
+            + '</div>'
+            + '<div style="height: 6px; border-radius: var(--radius-full); background: var(--border-subtle); overflow: hidden;">'
+            + '<div style="height: 100%; width: ' + pct + '%; background: ' + colorClass + ';"></div>'
+            + '</div>'
+            + '<div class="od-row" style="justify-content: flex-end;">'
+            + '<button type="button" class="btn btn-ghost adjust-budget-btn" data-id="' + escapeHTML(b.id) + '" style="min-height: 48px; padding: 0 12px; font-size: 12px;">Ajustar tope</button>'
+            + '</div>';
+
+          container.appendChild(item);
+        });
+
+        // Eventos ajustar tope
+        container.querySelectorAll(".adjust-budget-btn").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const bId = btn.getAttribute("data-id");
+            const targetB = state.budgets.find(function (b) { return b.id === bId; });
+            if (targetB) {
+              const newLimitStr = prompt("Nuevo tope mensual para " + targetB.category + " (COP):", targetB.limit);
+              const newLimit = Number(newLimitStr);
+              if (newLimit && newLimit > 0) {
+                targetB.limit = newLimit;
+                renderBudgets();
+                showSnackbar("Tope de " + targetB.category + " ajustado a " + formatCOP(newLimit));
+              }
+            }
+          });
+        });
+      }
+
+      function renderSubscriptions() {
+        const container = document.getElementById("subscriptions-list-container");
+        container.innerHTML = "";
+
+        let totalAnnual = 0;
+        state.subscriptions.forEach(function (s) {
+          const annual = s.monthly * 12;
+          totalAnnual += annual;
+
+          const row = document.createElement("div");
+          row.className = "info-tonal-box od-row";
+          row.style.justifyContent = "space-between";
+
+          row.innerHTML = '<div class="od-field">'
+            + '<strong>' + escapeHTML(s.name) + '</strong>'
+            + '<span style="font-size: 12px; color: var(--text-secondary);">' + formatCOP(s.monthly) + '/mes = <strong style="color: var(--finance-warning);">' + formatCOP(annual) + '/año</strong></span>'
+            + '</div>'
+            + '<button type="button" class="btn btn-ghost delete-sub-btn" data-id="' + escapeHTML(s.id) + '" style="min-height: 48px; padding: 0 12px; color: var(--finance-danger); font-size: 12px;">Eliminar</button>';
+
+          container.appendChild(row);
+        });
+
+        document.getElementById("subscriptions-annual-total").textContent = formatCOP(totalAnnual) + " al año";
+
+        container.querySelectorAll(".delete-sub-btn").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const sId = btn.getAttribute("data-id");
+            state.subscriptions = state.subscriptions.filter(function (s) { return s.id !== sId; });
+            renderSubscriptions();
+            showSnackbar("Suscripción eliminada del radar.");
+          });
+        });
+      }
+
+      function renderCoach() {
+        document.getElementById("coach-pillar-housing").textContent = formatCOP(state.user.housing);
+        document.getElementById("coach-pillar-food").textContent = formatCOP(state.user.food);
+        document.getElementById("coach-pillar-services").textContent = formatCOP(state.user.services);
+        document.getElementById("coach-pillar-transport").textContent = formatCOP(state.user.transport);
+        document.getElementById("coach-vital-total").textContent = formatCOP(getVitalTotal());
+
+        // Colchón
+        const w5 = state.wallets.find(function (w) { return w.id === "w-5"; });
+        const cushionSaved = w5 ? w5.balance : 0;
+        const vital = getVitalTotal();
+        const months = vital > 0 ? (cushionSaved / vital).toFixed(1) : "0";
+
+        document.getElementById("coach-cushion-badge").textContent = months + " Meses";
+        document.getElementById("coach-cushion-saved").textContent = formatCOP(cushionSaved);
+
+        updateSimulator();
+      }
+
+      function renderAll() {
+        renderHome();
+        renderMovements();
+        renderWallets();
+        renderDebts();
+        renderBudgets();
+        renderSubscriptions();
+        renderCoach();
+      }
+
+      // INICIO
+      if (!state.onboardingDone) {
+        switchScreen("screen-onboarding");
+      } else {
+        renderAll();
+        switchScreen("screen-home");
+      }
+
+      // Reloj vivo
+      function updateClock() {
+        const now = new Date();
+        const hrs = String(now.getHours()).padStart(2, "0");
+        const mins = String(now.getMinutes()).padStart(2, "0");
+        const clockEl = document.getElementById("clock-time");
+        if (clockEl) clockEl.textContent = hrs + ":" + mins;
+      }
+      setInterval(updateClock, 30000);
+      updateClock();
+
+    })();
+  </script>
+</body>
+</html>

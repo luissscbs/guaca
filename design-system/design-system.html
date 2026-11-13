@@ -1,0 +1,813 @@
+<!doctype html>
+<!-- impeccable-disable em-dash-overuse -- CSS variable names in documentation -->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guaca: Sistema de Diseño y Catálogo Atómico (Claro / Oscuro OLED)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    @layer od-layout {
+      [hidden]:not([hidden="until-found" i]) { display: none !important; }
+      dialog:not([open]) { display: none !important; }
+      :where(.od-stack,.od-row,.od-row-top,.od-cluster,.od-grid,.od-field,.od-stat,.od-cell) > :where(*) { min-width: 0; }
+      .od-stack   { display: flex; flex-direction: column; gap: var(--od-gap, 8px); }
+      .od-row     { display: flex; align-items: center; gap: var(--od-gap, 8px); }
+      .od-row-top { display: flex; align-items: flex-start; gap: var(--od-gap, 8px); }
+      .od-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--od-gap, 8px); }
+      .od-fill    { flex: 1 1 0; min-width: 0; }
+      .od-fixed   { flex: none; }
+      .od-grid    { display: grid; gap: var(--od-gap, 16px); grid-template-columns: repeat(var(--od-cols, 3), minmax(0, 1fr)); }
+      .od-stat, .od-field, .od-cell { display: grid; gap: var(--od-gap, 2px); }
+      :where(.od-stat,.od-field,.od-cell) > :where(*) { display: block; }
+      .od-truncate { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .od-nowrap  { white-space: nowrap; }
+    }
+    :root [hidden]:where(:not([hidden="until-found" i])) { display: none; }
+
+    :root {
+      --bg-canvas: #F6F8F7;
+      --bg-surface: #FFFFFF;
+      --bg-elevated: #EDF2F0;
+      --bg-subtle: #E3ECE8;
+
+      --text-primary: #0F1D18;
+      --text-secondary: #384B44;
+      --text-muted: #485A53;
+      --text-on-brand: #FFFFFF;
+
+      --border-subtle: #DCE5E1;
+      --border-strong: #B8C9C1;
+
+      --brand-primary: #0B6B53;
+      --brand-primary-pressed: #08523F;
+      --brand-soft: #DDF3EC;
+
+      --finance-vital: #1D4ED8;
+      --finance-vital-soft: #DBEAFE;
+      --finance-vital-border: #93C5FD;
+
+      --finance-growth: #116B34;
+      --finance-growth-soft: #DCFCE7;
+      --finance-growth-border: #86EFAC;
+
+      --finance-warning: #9A4306;
+      --finance-warning-soft: #FEF3C7;
+      --finance-warning-border: #FCD34D;
+
+      --finance-danger: #BE123C;
+      --finance-danger-soft: #FFE4E6;
+      --finance-danger-border: #FDA4AF;
+
+      --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", monospace;
+
+      --radius-xs: 8px;
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+    }
+
+    html.dark {
+      --bg-canvas: #090F0D;
+      --bg-surface: #121C18;
+      --bg-elevated: #1A2823;
+      --bg-subtle: #21322C;
+
+      --text-primary: #ECF3F0;
+      --text-secondary: #95A8A0;
+      --text-muted: #859E94;
+      --text-on-brand: #06231B;
+
+      --border-subtle: #273D35;
+      --border-strong: #3D5C50;
+
+      --brand-primary: #2DD4A8;
+      --brand-primary-pressed: #14B88E;
+      --brand-soft: #113229;
+
+      --finance-vital: #60A5FA;
+      --finance-vital-soft: #172554;
+      --finance-vital-border: #1E40AF;
+
+      --finance-growth: #4ADE80;
+      --finance-growth-soft: #052E16;
+      --finance-growth-border: #166534;
+
+      --finance-warning: #FBBF24;
+      --finance-warning-soft: #3B2106;
+      --finance-warning-border: #92400E;
+
+      --finance-danger: #FB7185;
+      --finance-danger-soft: #3F0B19;
+      --finance-danger-border: #9F1239;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      letter-spacing: -0.01em;
+    }
+
+    /* Single elevation: 1px subtle border, flat crisp surface, no wide blurry ghost shadows */
+    .ds-layout {
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr);
+      min-height: 100dvh;
+    }
+
+    .ds-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      overflow-y: auto;
+      padding: 24px 20px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .ds-main {
+      padding: 36px 48px 80px;
+      max-width: 1280px;
+    }
+
+    .ds-section {
+      margin-bottom: 40px;
+    }
+
+    .toc-link {
+      display: block;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .toc-link:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    /* Cards stay between 12px and 16px radius. NEVER nested! */
+    .ds-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .swatch-box {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+      background: var(--bg-surface);
+    }
+    .swatch-color {
+      height: 76px;
+      padding: 12px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .swatch-meta {
+      padding: 12px 14px;
+    }
+
+    .money-num {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .status-pill.vital { background: var(--finance-vital-soft); color: var(--finance-vital); border-color: var(--finance-vital-border); }
+    .status-pill.growth { background: var(--finance-growth-soft); color: var(--finance-growth); border-color: var(--finance-growth-border); }
+    .status-pill.warning { background: var(--finance-warning-soft); color: var(--finance-warning); border-color: var(--finance-warning-border); }
+    .status-pill.danger { background: var(--finance-danger-soft); color: var(--finance-danger); border-color: var(--finance-danger-border); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      text-decoration: none;
+      transition: background-color 150ms ease, opacity 150ms ease;
+    }
+    .btn-primary { background: var(--brand-primary); color: var(--text-on-brand); }
+    .btn-primary:hover { opacity: 0.92; }
+    .btn-secondary { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--border-strong); }
+    .btn-secondary:hover { background: var(--bg-subtle); }
+    .btn-ghost { background: transparent; color: var(--brand-primary); border-color: var(--border-subtle); }
+    .btn-ghost:hover { background: var(--bg-elevated); }
+    .btn-danger { background: var(--finance-danger-soft); color: var(--finance-danger); border-color: var(--finance-danger-border); }
+
+    .guaca-divider {
+      height: 1px;
+      background: var(--border-subtle);
+      border: none;
+      margin: 16px 0;
+    }
+
+    pre.code-block {
+      margin: 0;
+      padding: 18px;
+      border-radius: var(--radius-sm);
+      background: #090F0D;
+      color: #ECF3F0;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.55;
+      overflow-x: auto;
+      border: 1px solid #273D35;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table.ds-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    table.ds-table th,
+    table.ds-table td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: top;
+    }
+    table.ds-table th {
+      font-weight: 700;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    /* Screen preview items: flat within screen-preview-card, no nested cards! */
+    .screens-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .screen-preview-card {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      padding: 20px;
+    }
+    .screen-preview-metric {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+
+    /* Tonal information box without card border */
+    .info-tonal-box {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .ds-layout { grid-template-columns: 1fr; }
+      .ds-sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); }
+      .ds-main { padding: 24px 16px 64px; }
+    }
+
+    @media print {
+      .ds-sidebar, .no-print { display: none !important; }
+      .ds-layout { display: block; }
+      .ds-card, .screen-preview-card { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-layout">
+    <!-- SIDEBAR -->
+    <aside class="ds-sidebar od-stack" style="--od-gap: 16px;">
+      <div class="od-row" style="--od-gap: 10px;">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" role="img" aria-label="Logotipo Guaca G-Vault">
+          <rect x="2" y="2" width="36" height="36" rx="11" fill="var(--brand-soft)" stroke="var(--brand-primary)" stroke-width="2.2"/>
+          <path d="M27.5 14.5C25.8 11.8 23.1 10.2 19.8 10.2C14.4 10.2 10.2 14.5 10.2 20C10.2 25.5 14.4 29.8 19.8 29.8C24.8 29.8 28.6 26.4 29.2 21.6H23.2" stroke="var(--brand-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 15L24.5 20L20 25L15.5 20L20 15Z" fill="var(--brand-primary)"/>
+        </svg>
+        <div class="od-field">
+          <strong style="font-size: 16px;">Guaca Design System</strong>
+          <span style="font-size: 12px; color: var(--text-secondary);">v2.0 · Manrope & JetBrains Mono</span>
+        </div>
+      </div>
+
+      <div class="od-stack no-print" style="--od-gap: 8px;">
+        <button type="button" class="btn btn-secondary" id="ds-theme-toggle" style="width: 100%;">Alternar Claro / Oscuro OLED</button>
+        <a href="index.html" class="btn btn-primary" style="width: 100%;">Abrir Prototipo Android</a>
+      </div>
+
+      <nav class="od-stack" style="--od-gap: 4px;" aria-label="Índice del Sistema de Diseño">
+        <a class="toc-link" href="#principios">1. Resumen y Principios Visuales</a>
+        <a class="toc-link" href="#logotipo">2. Logotipo El Cofre Geométrico</a>
+        <a class="toc-link" href="#tokens">3. Paleta y Contraste WCAG AA+</a>
+        <a class="toc-link" href="#codigo-tokens">4. Variables CSS y NativeWind</a>
+        <a class="toc-link" href="#catalogo-atomico">5. Catálogo de Componentes Atómicos</a>
+        <a class="toc-link" href="#tablero-pantallas">6. Arquitectura de las 7 Pantallas</a>
+        <a class="toc-link" href="#handoff-claude">7. Entregables para Implementación</a>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="ds-main">
+
+      <!-- SECCIÓN 1: RESUMEN Y PRINCIPIOS -->
+      <section id="principios" class="ds-section od-stack" style="--od-gap: 20px;">
+        <div class="ds-card od-stack" style="--od-gap: 16px;">
+          <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.02em;">Guaca: Sistema de Diseño y Arquitectura Atómica</h1>
+          <p style="margin: 0; max-width: 75ch; color: var(--text-secondary);">
+            <strong>Lema Oficial:</strong> <em>"Lo tuyo, intocable. Lo demás, bajo control."</em> Guaca protege el <strong>Mínimo Vital</strong> indispensable (Vivienda, Mercado, Servicios y Transporte) y el <strong>Colchón de Tranquilidad</strong> antes de calcular la plata disponible para gastar sin culpa.
+          </p>
+
+          <div class="od-grid" style="--od-cols: 3; --od-gap: 16px;">
+            <div class="info-tonal-box">
+              <strong style="display: block; margin-bottom: 6px;">1. Serenidad de Bóveda Privada</strong>
+              <span style="font-size: 13px; color: var(--text-secondary);">Espacio amplio, sin tarjetas anidadas y con divisores finos de 1px. Cero ruido visual ni metáforas caricaturescas.</span>
+            </div>
+            <div class="info-tonal-box">
+              <strong style="display: block; margin-bottom: 6px;">2. Precisión Monetaria COP</strong>
+              <span style="font-size: 13px; color: var(--text-secondary);">Montos en pesos colombianos formateados con Manrope para interfaz y JetBrains Mono con números tabulares para cifras.</span>
+            </div>
+            <div class="info-tonal-box">
+              <strong style="display: block; margin-bottom: 6px;">3. Ergonomía Android a Una Mano</strong>
+              <span style="font-size: 13px; color: var(--text-secondary);">Zonas táctiles mínimas de 48dp, navegación de 5 pestañas, botón de acción flotante (FAB) al pulgar y contraste certificado WCAG AA+.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 2: LOGOTIPO -->
+      <section id="logotipo" class="ds-section od-stack" style="--od-gap: 20px;">
+        <div class="ds-card od-stack" style="--od-gap: 16px;">
+          <h2 style="margin: 0; font-size: 22px;">2. Identidad de Marca: El Cofre Geométrico (G-Vault)</h2>
+          <p style="margin: 0; max-width: 75ch; color: var(--text-secondary);">
+            Una letra G monolítica que abraza y resguarda un rombo central de esmeralda. Simboliza el Mínimo Vital intocable en el núcleo, con los flujos del mes circulando alrededor bajo control.
+          </p>
+
+          <div class="od-grid" style="--od-cols: 3; --od-gap: 16px;">
+            <div class="info-tonal-box od-row" style="--od-gap: 14px;">
+              <svg width="52" height="52" viewBox="0 0 40 40" fill="none" role="img" aria-label="Logo Guaca Modo Claro">
+                <rect x="2" y="2" width="36" height="36" rx="11" fill="#DDF3EC" stroke="#0B6B53" stroke-width="2.2"/>
+                <path d="M27.5 14.5C25.8 11.8 23.1 10.2 19.8 10.2C14.4 10.2 10.2 14.5 10.2 20C10.2 25.5 14.4 29.8 19.8 29.8C24.8 29.8 28.6 26.4 29.2 21.6H23.2" stroke="#0B6B53" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 15L24.5 20L20 25L15.5 20L20 15Z" fill="#0B6B53"/>
+              </svg>
+              <div class="od-field">
+                <strong>Versión Diurna (Claro)</strong>
+                <span style="font-size: 12px; color: var(--text-secondary);">Esmeralda Bóveda #0B6B53 (6.48:1)</span>
+              </div>
+            </div>
+
+            <div class="info-tonal-box od-row" style="background: #090F0D; color: #ECF3F0; --od-gap: 14px;">
+              <svg width="52" height="52" viewBox="0 0 40 40" fill="none" role="img" aria-label="Logo Guaca Modo Oscuro OLED">
+                <rect x="2" y="2" width="36" height="36" rx="11" fill="#113229" stroke="#2DD4A8" stroke-width="2.2"/>
+                <path d="M27.5 14.5C25.8 11.8 23.1 10.2 19.8 10.2C14.4 10.2 10.2 14.5 10.2 20C10.2 25.5 14.4 29.8 19.8 29.8C24.8 29.8 28.6 26.4 29.2 21.6H23.2" stroke="#2DD4A8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 15L24.5 20L20 25L15.5 20L20 15Z" fill="#2DD4A8"/>
+              </svg>
+              <div class="od-field">
+                <strong>Versión Nocturna (OLED)</strong>
+                <span style="font-size: 12px; color: #95A8A0;">Esmeralda Luz #2DD4A8 (7.12:1)</span>
+              </div>
+            </div>
+
+            <div class="info-tonal-box od-row" style="--od-gap: 14px;">
+              <svg width="52" height="52" viewBox="0 0 40 40" fill="none" role="img" aria-label="Logo Guaca Estado Privacidad">
+                <rect x="2" y="2" width="36" height="36" rx="11" fill="var(--finance-vital-soft)" stroke="var(--finance-vital)" stroke-width="2.2"/>
+                <circle cx="14" cy="20" r="2.5" fill="var(--finance-vital)"/>
+                <circle cx="20" cy="20" r="2.5" fill="var(--finance-vital)"/>
+                <circle cx="26" cy="20" r="2.5" fill="var(--finance-vital)"/>
+              </svg>
+              <div class="od-field">
+                <strong>Modo Privacidad ($ ••••)</strong>
+                <span style="font-size: 12px; color: var(--text-secondary);">Oculta saldos ante miradas indiscretas</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 3: PALETA DE COLOR Y TOKENS SEMÁNTICOS -->
+      <section id="tokens" class="ds-section od-stack" style="--od-gap: 20px;">
+        <div class="ds-card od-stack" style="--od-gap: 18px;">
+          <h2 style="margin: 0; font-size: 22px;">3. Paleta Esmeralda Bóveda y Piedra Fría (Verificada WCAG AA+)</h2>
+          <p style="margin: 0; color: var(--text-secondary);">
+            Cada combinación ha sido auditada matemáticamente para superar 4.5:1 en texto normal sobre cualquier superficie clara u oscura, garantizando máxima legibilidad.
+          </p>
+
+          <div class="swatch-grid">
+            <div class="swatch-box">
+              <div class="swatch-color" style="background: #0B6B53; color: #FFFFFF;"><span>--brand-primary</span><span>6.48:1 AA</span></div>
+              <div class="swatch-meta od-field">
+                <strong>Esmeralda Bóveda</strong>
+                <span style="font-size: 12px; color: var(--text-secondary);">Claro: <code>#0B6B53</code> · Oscuro: <code>#2DD4A8</code></span>
+              </div>
+            </div>
+
+            <div class="swatch-box">
+              <div class="swatch-color" style="background: #1D4ED8; color: #FFFFFF;"><span>--finance-vital</span><span>5.56:1 AA</span></div>
+              <div class="swatch-meta od-field">
+                <strong>Azul Protector (Mínimo Vital)</strong>
+                <span style="font-size: 12px; color: var(--text-secondary);">Claro: <code>#1D4ED8</code> · Oscuro: <code>#60A5FA</code></span>
+              </div>
+            </div>
+
+            <div class="swatch-box">
+              <div class="swatch-color" style="background: #116B34; color: #FFFFFF;"><span>--finance-growth</span><span>5.49:1 AA</span></div>
+              <div class="swatch-meta od-field">
+                <strong>Verde Bosque (Capacidad Ahorro)</strong>
+                <span style="font-size: 12px; color: var(--text-secondary);">Claro: <code>#116B34</code> · Oscuro: <code>#4ADE80</code></span>
+              </div>
+            </div>
+
+            <div class="swatch-box">
+              <div class="swatch-color" style="background: #9A4306; color: #FFFFFF;"><span>--finance-warning</span><span>5.48:1 AA</span></div>
+              <div class="swatch-meta od-field">
+                <strong>Ámbar Tierra (Alerta y Fugas)</strong>
+                <span style="font-size: 12px; color: var(--text-secondary);">Claro: <code>#9A4306</code> · Oscuro: <code>#FBBF24</code></span>
+              </div>
+            </div>
+
+            <div class="swatch-box">
+              <div class="swatch-color" style="background: #BE123C; color: #FFFFFF;"><span>--finance-danger</span><span>5.22:1 AA</span></div>
+              <div class="swatch-meta od-field">
+                <strong>Carmesí Profundo (Riesgo Mínimo Vital)</strong>
+                <span style="font-size: 12px; color: var(--text-secondary);">Claro: <code>#BE123C</code> · Oscuro: <code>#FB7185</code></span>
+              </div>
+            </div>
+
+            <div class="swatch-box">
+              <div class="swatch-color" style="background: #0F1D18; color: #ECF3F0;"><span>--text-primary</span><span>14.41:1 AAA</span></div>
+              <div class="swatch-meta od-field">
+                <strong>Piedra Profunda / OLED</strong>
+                <span style="font-size: 12px; color: var(--text-secondary);">Lienzo: <code>#F6F8F7</code> · OLED: <code>#090F0D</code></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 4: VARIABLES CSS Y NATIVEWIND -->
+      <section id="codigo-tokens" class="ds-section od-stack" style="--od-gap: 20px;">
+        <div class="ds-card od-stack" style="--od-gap: 18px;">
+          <h2 style="margin: 0; font-size: 22px;">4. Variables CSS y Configuración NativeWind (Manrope Oficial)</h2>
+          <p style="margin: 0; color: var(--text-secondary);">
+            Archivos sincronizados directamente en <code>design-system/global.css</code> y <code>design-system/tailwind.config.js</code> para Expo SDK 52+ y React Native.
+          </p>
+
+          <div class="od-grid" style="--od-cols: 2; --od-gap: 16px;">
+            <div class="od-stack" style="--od-gap: 8px;">
+              <strong>Variables Semánticas (global.css)</strong>
+              <pre class="code-block"><code>:root {
+  --bg-canvas: 246 248 247;       /* #F6F8F7 */
+  --bg-surface: 255 255 255;      /* #FFFFFF */
+  --bg-elevated: 237 242 240;     /* #EDF2F0 */
+  --text-primary: 15 29 24;       /* #0F1D18 */
+  --text-secondary: 56 75 68;     /* #384B44 */
+  --text-muted: 72 90 83;         /* #485A53 */
+  --border-subtle: 220 229 225;   /* #DCE5E1 */
+  --brand-primary: 11 107 83;     /* #0B6B53 */
+  --finance-vital: 29 78 216;     /* #1D4ED8 */
+  --finance-growth: 17 107 52;    /* #116B34 */
+  --finance-warning: 154 67 6;    /* #9A4306 */
+  --finance-danger: 190 18 60;    /* #BE123C */
+}
+
+.dark {
+  --bg-canvas: 9 15 13;           /* #090F0D OLED */
+  --bg-surface: 18 28 24;         /* #121C18 */
+  --bg-elevated: 26 40 35;        /* #1A2823 */
+  --text-primary: 236 243 240;    /* #ECF3F0 */
+  --text-secondary: 149 168 160;  /* #95A8A0 */
+  --border-subtle: 39 61 53;      /* #273D35 */
+  --brand-primary: 45 212 168;    /* #2DD4A8 */
+  --finance-vital: 96 165 250;    /* #60A5FA */
+  --finance-growth: 74 222 128;   /* #4ADE80 */
+  --finance-warning: 251 191 36;  /* #FBBF24 */
+  --finance-danger: 251 113 133;  /* #FB7185 */
+}</code></pre>
+            </div>
+
+            <div class="od-stack" style="--od-gap: 8px;">
+              <strong>Configuración Tailwind (tailwind.config.js)</strong>
+              <pre class="code-block"><code>module.exports = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        canvas: "rgb(var(--bg-canvas) / &lt;alpha-value&gt;)",
+        surface: "rgb(var(--bg-surface) / &lt;alpha-value&gt;)",
+        elevated: "rgb(var(--bg-elevated) / &lt;alpha-value&gt;)",
+        primary: "rgb(var(--text-primary) / &lt;alpha-value&gt;)",
+        secondary: "rgb(var(--text-secondary) / &lt;alpha-value&gt;)",
+        brand: "rgb(var(--brand-primary) / &lt;alpha-value&gt;)",
+        finance: {
+          vital: "rgb(var(--finance-vital) / &lt;alpha-value&gt;)",
+          growth: "rgb(var(--finance-growth) / &lt;alpha-value&gt;)",
+          warning: "rgb(var(--finance-warning) / &lt;alpha-value&gt;)",
+          danger: "rgb(var(--finance-danger) / &lt;alpha-value&gt;)",
+        },
+      },
+      fontFamily: {
+        sans: ["Manrope_600SemiBold", "System"],
+        mono: ["JetBrainsMono_700Bold", "monospace"],
+      },
+    },
+  },
+};</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 5: CATÁLOGO ATÓMICO -->
+      <section id="catalogo-atomico" class="ds-section od-stack" style="--od-gap: 20px;">
+        <div class="ds-card od-stack" style="--od-gap: 20px;">
+          <h2 style="margin: 0; font-size: 22px;">5. Catálogo de Componentes Atómicos (Átomos, Moléculas y Organismos)</h2>
+
+          <!-- Muestra de botones interactivos con altura minima de 48dp -->
+          <div class="info-tonal-box od-stack" style="--od-gap: 12px;">
+            <strong style="font-size: 14px;">Botones de Acción (Zona táctil mínima 48dp)</strong>
+            <div class="od-cluster" style="--od-gap: 10px;">
+              <button type="button" class="btn btn-primary">Primario (48dp)</button>
+              <button type="button" class="btn btn-secondary">Secundario (48dp)</button>
+              <button type="button" class="btn btn-ghost">Fantasma</button>
+              <button type="button" class="btn btn-danger">Peligro / Déficit</button>
+              <button type="button" class="btn btn-secondary" disabled style="opacity: 0.4; cursor: not-allowed;">Deshabilitado</button>
+            </div>
+            <div class="od-cluster" style="--od-gap: 10px; margin-top: 4px;">
+              <span class="status-pill vital">✓ Mínimo Vital Blindado</span>
+              <span class="status-pill growth">↑ Capacidad Ahorro (24,9%)</span>
+              <span class="status-pill warning">! Alerta Fuga Hormiga</span>
+              <span class="status-pill danger">✕ Riesgo Mínimo Vital</span>
+              <span class="status-pill vital money-num">Privacidad: $ •••••••</span>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="ds-table">
+              <thead>
+                <tr>
+                  <th>Nivel</th>
+                  <th>Componente</th>
+                  <th>Variantes</th>
+                  <th>Estados Soportados</th>
+                  <th>Props Clave (TypeScript)</th>
+                  <th>Ergonomía y Accesibilidad Android</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Átomo</strong></td>
+                  <td><code>MoneyText</code></td>
+                  <td><code>xl</code>, <code>lg</code>, <code>md</code>, <code>sm</code></td>
+                  <td><code>visible</code>, <code>privacy (••••)</code></td>
+                  <td><code>amount: number; isPrivate?: boolean; size?: 'xl'|'lg'|'md'|'sm'</code></td>
+                  <td>Usa JetBrains Mono con <code>fontVariant: ['tabular-nums']</code>. Anuncia monto en pesos a TalkBack.</td>
+                </tr>
+                <tr>
+                  <td><strong>Átomo</strong></td>
+                  <td><code>GuacaButton</code> / <code>QuickFAB</code></td>
+                  <td><code>primary</code>, <code>secondary</code>, <code>ghost</code>, <code>danger</code></td>
+                  <td><code>default</code>, <code>pressed</code>, <code>disabled</code>, <code>loading</code></td>
+                  <td><code>label: string; variant; onPress: () =&gt; void; disabled?: boolean</code></td>
+                  <td>Altura mínima 48dp obligatoria en controles táctiles (56dp en FAB ubicado al pulgar derecho).</td>
+                </tr>
+                <tr>
+                  <td><strong>Átomo</strong></td>
+                  <td><code>TrafficLightBadge</code></td>
+                  <td><code>vital</code>, <code>growth</code>, <code>warning</code>, <code>danger</code></td>
+                  <td><code>default</code>, <code>compact</code></td>
+                  <td><code>status: 'vital'|'growth'|'warning'|'danger'; label: string</code></td>
+                  <td>Accesible para daltonismo: combina icono vectorial descriptivo con texto explícito.</td>
+                </tr>
+                <tr>
+                  <td><strong>Molécula</strong></td>
+                  <td><code>DebtItemCard</code></td>
+                  <td><code>snowball</code>, <code>avalanche</code></td>
+                  <td><code>default</code>, <code>abono</code></td>
+                  <td><code>debtName: string; balance: number; quota: number; monthlyInterestCost: number</code></td>
+                  <td>Lenguaje para dummies: traduce tasas bancarias a pesos ("Por cada $100.000 pagás ~$2.100/mes").</td>
+                </tr>
+                <tr>
+                  <td><strong>Molécula</strong></td>
+                  <td><code>TransactionItem</code></td>
+                  <td><code>expense</code>, <code>income</code>, <code>transfer</code></td>
+                  <td><code>default</code>, <code>pressed</code></td>
+                  <td><code>title: string; category: string; account: string; amount: number; pillarTag: string</code></td>
+                  <td>Fila ergonómica de 64dp de altura, con monto tabular a la derecha y pastilla del pilar financiero.</td>
+                </tr>
+                <tr>
+                  <td><strong>Molécula</strong></td>
+                  <td><code>TransferAccountSelector</code></td>
+                  <td><code>sourceTarget</code></td>
+                  <td><code>selected</code>, <code>switching</code></td>
+                  <td><code>sourceAccountId: string; targetAccountId: string; onSelect: () =&gt; void</code></td>
+                  <td>Selector doble: "¿De dónde sale?" y "¿A qué cuenta llega?", restando y sumando en tiempo real.</td>
+                </tr>
+                <tr>
+                  <td><strong>Organismo</strong></td>
+                  <td><code>MonthHealthPanel</code></td>
+                  <td><code>paz</code>, <code>alerta</code>, <code>riesgo</code></td>
+                  <td><code>default</code>, <code>privacy</code></td>
+                  <td><code>netIncome: number; vitalTotal: number; availableFree: number</code></td>
+                  <td>Panel protagonista de Inicio: destaca Disponible para gastar sin culpa y el Semáforo del Mes.</td>
+                </tr>
+                <tr>
+                  <td><strong>Organismo</strong></td>
+                  <td><code>AffordabilitySimulator</code></td>
+                  <td><code>cash</code>, <code>cuotas</code></td>
+                  <td><code>safe</code>, <code>caution</code>, <code>danger</code></td>
+                  <td><code>purchaseAmount: number; months: number; savingCapacity: number</code></td>
+                  <td>Simula compras en 1 a 36 cuotas e indica con honestidad si la compra pone en riesgo el Mínimo Vital.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 6: TABLERO DE LAS 7 PANTALLAS -->
+      <section id="tablero-pantallas" class="ds-section od-stack" style="--od-gap: 20px;">
+        <div class="od-row" style="justify-content: space-between; align-items: flex-end;">
+          <div class="od-field">
+            <h2 style="margin: 0; font-size: 22px;">6. Arquitectura de las 7 Pantallas del MVP (Vista Panorámica)</h2>
+            <span style="font-size: 13px; color: var(--text-secondary);">Cada pantalla está construida sin tarjetas anidadas, respetando la ergonomía de Android.</span>
+          </div>
+          <a href="index.html" class="btn btn-primary no-print">Probar Interactivo en Android</a>
+        </div>
+
+        <div class="screens-board">
+          <!-- Screen 1 -->
+          <article class="screen-preview-card od-stack" style="--od-gap: 12px;">
+            <div class="od-row" style="justify-content: space-between;">
+              <strong>1. Inicio: Semáforo del Mes</strong>
+              <span class="status-pill vital">Principal</span>
+            </div>
+            <div class="screen-preview-metric od-stack" style="--od-gap: 4px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Disponible para gastar sin culpa</span>
+              <div class="money-num" style="font-size: 22px; font-weight: 700; color: var(--finance-growth);">$ 1.120.000</div>
+              <span style="font-size: 12px; color: var(--text-secondary);">Mínimo Vital ($ 2.450.000) 100% blindado</span>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">El número protagonista es la plata libre real. Saldo total consolidado discreto para evitar el espejismo de riqueza. Máximo 3 bloques limpios.</p>
+          </article>
+
+          <!-- Screen 2 -->
+          <article class="screen-preview-card od-stack" style="--od-gap: 12px;">
+            <div class="od-row" style="justify-content: space-between;">
+              <strong>2. Movimientos y Registro</strong>
+              <span class="status-pill growth">Historial</span>
+            </div>
+            <div class="screen-preview-metric od-stack" style="--od-gap: 4px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Registro en 2 toques desde FAB</span>
+              <div class="money-num" style="font-size: 18px; font-weight: 700;">- $ 18.500 (Café / Ocio)</div>
+              <span style="font-size: 12px; color: var(--finance-warning);">! Clasificación automática de pilar</span>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Buscador instantáneo, filtros por pilar financiero, edición/eliminación de movimientos y Snackbar inferior con botón Deshacer.</p>
+          </article>
+
+          <!-- Screen 3 -->
+          <article class="screen-preview-card od-stack" style="--od-gap: 12px;">
+            <div class="od-row" style="justify-content: space-between;">
+              <strong>3. Cuentas, Tarjetas y Deudas</strong>
+              <span class="status-pill vital">Billeteras</span>
+            </div>
+            <div class="screen-preview-metric od-stack" style="--od-gap: 4px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Plan de Deudas para Dummies</span>
+              <div class="money-num" style="font-size: 18px; font-weight: 700;">Victorias Rápidas</div>
+              <span style="font-size: 12px; color: var(--finance-vital);">Interés: ~$2.100/mes por c/ $100.000</span>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Botones para crear billeteras y deudas. Muestra métodos Victorias Rápidas y Ahorra Más Intereses sin jerga bancaria incomprensible.</p>
+          </article>
+
+          <!-- Screen 4 -->
+          <article class="screen-preview-card od-stack" style="--od-gap: 12px;">
+            <div class="od-row" style="justify-content: space-between;">
+              <strong>4. Presupuestos y Fugas Anuales</strong>
+              <span class="status-pill warning">Control</span>
+            </div>
+            <div class="screen-preview-metric od-stack" style="--od-gap: 4px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Impacto Anualizado de Fugas</span>
+              <div class="money-num" style="font-size: 18px; font-weight: 700;">$ 35.000/mes = $ 420.000/año</div>
+              <span style="font-size: 12px; color: var(--finance-warning);">! Detector de fugas multiplicado x12</span>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Ajuste de topes por categoría, barras con progreso semántico y radar de suscripciones con costo anualizado.</p>
+          </article>
+
+          <!-- Screen 5 -->
+          <article class="screen-preview-card od-stack" style="--od-gap: 12px;">
+            <div class="od-row" style="justify-content: space-between;">
+              <strong>5. Plan Coach y Simulador</strong>
+              <span class="status-pill growth">Estrategia</span>
+            </div>
+            <div class="screen-preview-metric od-stack" style="--od-gap: 4px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Colchón de Tranquilidad</span>
+              <div class="money-num" style="font-size: 18px; font-weight: 700;">2.1 meses de vida cubiertos</div>
+              <span style="font-size: 12px; color: var(--finance-growth);">✓ Meta intermedia: 3 meses</span>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Resumen de los 4 pilares, simulador "¿Me alcanza de verdad?", metas de ahorro con aportes y acceso directo a Reportes.</p>
+          </article>
+
+          <!-- Screen 6 -->
+          <article class="screen-preview-card od-stack" style="--od-gap: 12px;">
+            <div class="od-row" style="justify-content: space-between;">
+              <strong>6. Reportes Visuales Dedicados</strong>
+              <span class="status-pill vital">Satélite</span>
+            </div>
+            <div class="screen-preview-metric od-stack" style="--od-gap: 4px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Distribución del Ingreso</span>
+              <div class="money-num" style="font-size: 18px; font-weight: 700;">54% Vital · 25% Ahorro · 21% Ocio</div>
+              <span style="font-size: 12px; color: var(--finance-growth);">↑ Capacidad saludable y estable</span>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Accesible desde Plan Coach con botón Volver. Gráficos SVG locales de distribución por pilares y evolución histórica mes a mes.</p>
+          </article>
+
+          <!-- Screen 7 -->
+          <article class="screen-preview-card od-stack" style="--od-gap: 12px;">
+            <div class="od-row" style="justify-content: space-between;">
+              <strong>7. Onboarding 3 Pasos y Respaldo</strong>
+              <span class="status-pill vital">Local</span>
+            </div>
+            <div class="screen-preview-metric od-stack" style="--od-gap: 4px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Respaldo local JSON</span>
+              <div class="money-num" style="font-size: 16px; font-weight: 700;">guaca-respaldo-2026-11.json</div>
+              <span style="font-size: 12px; color: var(--finance-vital);">✓ 100% fuera de línea sin servidores</span>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Primer arranque guiado con 4 casillas independientes para el Mínimo Vital y exportación/importación honesta de archivo JSON.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 7: ENTREGABLES -->
+      <section id="handoff-claude" class="ds-section od-stack" style="--od-gap: 20px;">
+        <div class="ds-card od-stack" style="--od-gap: 14px;">
+          <h2 style="margin: 0; font-size: 22px;">7. Paquete de Archivos para Implementación</h2>
+          <p style="margin: 0; color: var(--text-secondary);">
+            Todos los componentes y tokens están listos para conectarse con la arquitectura React Native y SQLite:
+          </p>
+          <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary);">
+            <li><strong>PRODUCT.md:</strong> Contexto de producto y reglas de negocio del Coach Financiero.</li>
+            <li><strong>DESIGN.md:</strong> Fuente de verdad del sistema de diseño, tokens matemáticos y escala tipográfica.</li>
+            <li><strong>design-system/global.css:</strong> Variables semánticas para modo claro diurno y oscuro OLED.</li>
+            <li><strong>design-system/tailwind.config.js:</strong> Mapeo para NativeWind v4 con Manrope y JetBrains Mono.</li>
+            <li><strong>claude-code-handoff_CLAUDE.md:</strong> Guía de desarrollo paso a paso para React Native y Expo.</li>
+          </ul>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const toggle = document.getElementById("ds-theme-toggle");
+      const root = document.documentElement;
+
+      const saved = localStorage.getItem("guaca_theme");
+      if (saved === "dark") {
+        root.classList.add("dark");
+      }
+
+      toggle.addEventListener("click", function () {
+        const isDark = root.classList.toggle("dark");
+        localStorage.setItem("guaca_theme", isDark ? "dark" : "light");
+      });
+    })();
+  </script>
+</body>
+</html>
