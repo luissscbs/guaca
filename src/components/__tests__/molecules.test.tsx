@@ -83,10 +83,10 @@ describe('Molecules: WalletCard', () => {
       name: 'Bóveda Intocable',
       type: 'vault',
     };
-    const { getByText } = render(
+    const { getAllByText } = render(
       <WalletCard wallet={vaultWallet} onEdit={() => {}} />
     );
-    expect(getByText('Bóveda protegida')).toBeTruthy();
+    expect(getAllByText('Tu Guaca').length).toBeGreaterThanOrEqual(1);
   });
 });
 

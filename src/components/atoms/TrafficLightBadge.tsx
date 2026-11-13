@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleProp, ViewStyle } from 'react-native';
+import { useColorScheme } from 'nativewind';
 import {
   CheckCircle2,
   AlertTriangle,
@@ -24,28 +25,32 @@ const STATUS_CONFIG = {
     defaultLabel: 'Paz Financiera',
     bgClass: 'bg-finance-growthSoft',
     textClass: 'text-finance-growth font-sans-semibold',
-    iconColor: PALETTE.light.financeGrowth,
+    iconColorLight: PALETTE.light.financeGrowth,
+    iconColorDark: PALETTE.dark.financeGrowth,
     Icon: CheckCircle2,
   },
   alert: {
     defaultLabel: 'Alerta',
     bgClass: 'bg-finance-warningSoft',
     textClass: 'text-finance-warning font-sans-semibold',
-    iconColor: PALETTE.light.financeWarning,
+    iconColorLight: PALETTE.light.financeWarning,
+    iconColorDark: PALETTE.dark.financeWarning,
     Icon: AlertTriangle,
   },
   risk: {
     defaultLabel: 'Riesgo',
     bgClass: 'bg-finance-dangerSoft',
     textClass: 'text-finance-danger font-sans-semibold',
-    iconColor: PALETTE.light.financeDanger,
+    iconColorLight: PALETTE.light.financeDanger,
+    iconColorDark: PALETTE.dark.financeDanger,
     Icon: AlertOctagon,
   },
   vital: {
     defaultLabel: 'Mínimo Vital',
     bgClass: 'bg-finance-vitalSoft',
     textClass: 'text-finance-vital font-sans-semibold',
-    iconColor: PALETTE.light.financeVital,
+    iconColorLight: PALETTE.light.financeVital,
+    iconColorDark: PALETTE.dark.financeVital,
     Icon: ShieldCheck,
   },
 };
@@ -58,6 +63,8 @@ export function TrafficLightBadge({
   className = '',
   testID,
 }: TrafficLightBadgeProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const config = STATUS_CONFIG[status];
   const displayLabel = label ?? config.defaultLabel;
   const iconSize = size === 'sm' ? 14 : 16;
@@ -74,6 +81,7 @@ export function TrafficLightBadge({
     .join(' ');
 
   const IconComponent = config.Icon;
+  const iconColor = isDark ? config.iconColorDark : config.iconColorLight;
 
   return (
     <View
@@ -84,7 +92,7 @@ export function TrafficLightBadge({
       accessibilityRole="text"
       accessibilityLabel={`Estado: ${displayLabel}`}
     >
-      <IconComponent size={iconSize} color={config.iconColor} strokeWidth={2.4} />
+      <IconComponent size={iconSize} color={iconColor} strokeWidth={2.4} />
       <Text className={`ml-1.5 ${textClasses} ${config.textClass}`}>
         {displayLabel}
       </Text>
