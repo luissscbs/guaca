@@ -10,6 +10,8 @@ import {
   Budget,
   CreditCard,
   Debt,
+  FinancialPillar,
+  QuickPreset,
   SavingsGoal,
   SubscriptionLeak,
   Transaction,
@@ -62,6 +64,71 @@ export function validatePositiveAmount(
   return {
     isValid: true,
     value: rounded,
+  };
+}
+
+/**
+ * Valida que un monto monetario sea un número entero finito no negativo (>= 0).
+ * Permite $ 0 y redondea valores de punto flotante a enteros de pesos COP.
+ */
+export function validateNonNegativeAmount(
+  value: unknown,
+  fieldName: string = 'El monto'
+): ValidationResult<number> {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return {
+      isValid: false,
+      value: 0,
+      error: `${fieldName} debe ser un número entero mayor o igual a cero.`,
+    };
+  }
+
+  const rounded = roundCOP(value);
+
+  if (rounded < 0) {
+    return {
+      isValid: false,
+      value: 0,
+      error: `${fieldName} no puede ser negativo.`,
+    };
+  }
+
+  if (!Number.isSafeInteger(rounded) || rounded > MAX_SAFE_COP_AMOUNT) {
+    return {
+      isValid: false,
+      value: 0,
+      error: `${fieldName} supera el límite máximo seguro permitido ($ 100 billones COP).`,
+    };
+  }
+
+  return {
+    isValid: true,
+    value: rounded,
+  };
+}
+
+const VALID_PILLARS: Set<string> = new Set([
+  'vital',
+  'growth',
+  'leisure',
+  'debt',
+  'income',
+  'transfer',
+]);
+
+/**
+ * Valida que un pilar financiero corresponda a una de las 6 clasificaciones oficiales.
+ */
+export function validatePillar(pillar: unknown): ValidationResult<FinancialPillar> {
+  if (typeof pillar === 'string' && VALID_PILLARS.has(pillar)) {
+    return {
+      isValid: true,
+      value: pillar as FinancialPillar,
+    };
+  }
+  return {
+    isValid: false,
+    error: 'Pilar financiero inválido. Debe ser: vital, growth, leisure, debt, income o transfer.',
   };
 }
 
@@ -413,6 +480,35 @@ function validateCollectionItems(payload: Partial<BackupPayload>): string | null
     }
   }
 
+  // 8. Quick Presets (opcional para compatibilidad hacia atrás)
+  if (payload.quickPresets !== undefined) {
+    if (!Array.isArray(payload.quickPresets)) {
+      return 'Se encontró un formato inválido en la lista de botones rápidos.';
+    }
+    const presets = payload.quickPresets as unknown[];
+    for (const item of presets) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        return 'Se encontró un botón rápido inválido.';
+      }
+      const q = item as Partial<QuickPreset>;
+      if (
+        typeof q.id !== 'string' ||
+        q.id.trim() === '' ||
+        typeof q.name !== 'string' ||
+        q.name.trim() === '' ||
+        !['expense', 'income'].includes(q.type as string) ||
+        typeof q.defaultAmount !== 'number' ||
+        !Number.isFinite(q.defaultAmount) ||
+        q.defaultAmount < 0 ||
+        !VALID_PILLARS.has(q.pillar as string) ||
+        typeof q.categoryId !== 'string' ||
+        q.categoryId.trim() === ''
+      ) {
+        return 'Uno de los botones rápidos contiene datos incompletos o inválidos.';
+      }
+    }
+  }
+
   return null;
 }
 
@@ -493,6 +589,21 @@ export function validateBackupPayload(rawJson: unknown): ValidationResult<Backup
       return {
         isValid: false,
         error: `La colección de ${field} supera el límite máximo de ${MAX_COLLECTION_RECORDS} registros permitidos.`,
+      };
+    }
+  }
+
+  if (payload.quickPresets !== undefined) {
+    if (!Array.isArray(payload.quickPresets)) {
+      return {
+        isValid: false,
+        error: 'El respaldo contiene un formato inválido en la lista de quickPresets.',
+      };
+    }
+    if (payload.quickPresets.length > MAX_COLLECTION_RECORDS) {
+      return {
+        isValid: false,
+        error: `La colección de quickPresets supera el límite máximo de ${MAX_COLLECTION_RECORDS} registros permitidos.`,
       };
     }
   }

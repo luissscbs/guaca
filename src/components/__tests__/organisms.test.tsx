@@ -385,6 +385,59 @@ describe('Organisms: QuickRecordSheet', () => {
       })
     );
   });
+
+  it('supports smart presets, auto-filling amount, offering to update fixed price, and displays "Me enviaron plata" with custom note label', () => {
+    const onSubmitMock = jest.fn();
+    const onUpdatePresetMock = jest.fn();
+    const dummyPresets = [
+      {
+        id: 'p1',
+        name: 'CARRO',
+        type: 'expense' as const,
+        defaultAmount: 50000,
+        pillar: 'leisure' as const,
+        categoryId: 'carro',
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+      },
+    ];
+
+    const { getByText, getByRole, getByPlaceholderText } = render(
+      <QuickRecordSheet
+        wallets={dummyWallets}
+        onSubmit={onSubmitMock}
+        presets={dummyPresets}
+        onUpdatePreset={onUpdatePresetMock}
+        initialType="expense"
+      />
+    );
+
+    // Barra de Botones Rápidos
+    expect(getByText('Tus Botones Rápidos (1 toque)')).toBeTruthy();
+    const presetBtn = getByRole('button', { name: /CARRO · \$ 50\.000/i });
+    fireEvent.press(presetBtn);
+
+    // Debe rellenar el monto con 50000
+    const amountInput = getByPlaceholderText('0');
+    expect(amountInput.props.value).toBe('50000');
+
+    // Cambiar a 60000 ofrece actualizar precio fijo
+    fireEvent.changeText(amountInput, '60000');
+    const updatePriceBtn = getByRole('button', {
+      name: /Actualizar precio fijo de CARRO a \$ 60\.000/i,
+    });
+    expect(updatePriceBtn).toBeTruthy();
+    fireEvent.press(updatePriceBtn);
+    expect(onUpdatePresetMock).toHaveBeenCalledWith('p1', { defaultAmount: 60000 });
+
+    // Cambiar a pestaña "Me enviaron plata"
+    const incomeBtn = getByRole('button', { name: /Me enviaron plata/i });
+    fireEvent.press(incomeBtn);
+
+    // Debe mostrar la etiqueta adaptada
+    expect(getByText('¿En qué fue o quién te envió la plata?')).toBeTruthy();
+    expect(getByPlaceholderText(/Ej: Para la semana, comida, pasajes/i)).toBeTruthy();
+  });
 });
 
 describe('Organisms: OnboardingWizard', () => {
@@ -501,6 +554,61 @@ describe('Organisms: OnboardingWizard', () => {
       expect.objectContaining({
         userName: 'Valentina',
         profileType: 'student',
+      })
+    );
+  });
+
+  it('allows onboarding with $0 fixed income, toggling reality categories, and adding custom quick presets', () => {
+    const onCompleteMock = jest.fn();
+    const { getByText, getByPlaceholderText, getByRole } = render(
+      <OnboardingWizard onComplete={onCompleteMock} />
+    );
+
+    // Paso 1
+    fireEvent.changeText(getByPlaceholderText('Tu nombre o apodo'), 'Mateo');
+    fireEvent.changeText(getByPlaceholderText('Nombre de tu cuenta principal'), 'Nequi');
+    fireEvent.changeText(getByPlaceholderText('Saldo inicial'), '250000');
+    fireEvent.press(getByRole('button', { name: 'Siguiente' }));
+
+    // Paso 2: Usar botones rápidos para $0 ingreso y día 1
+    const noFixedIncomeBtn = getByRole('button', {
+      name: /No tengo ingreso fijo aún/i,
+    });
+    fireEvent.press(noFixedIncomeBtn);
+
+    const noFixedDayBtn = getByRole('button', {
+      name: /Sin día fijo/i,
+    });
+    fireEvent.press(noFixedDayBtn);
+
+    fireEvent.press(getByRole('button', { name: 'Siguiente' }));
+
+    // Paso 3: "Arma tu realidad" y agregar preset personalizado "CARRO"
+    expect(getByText(/Arma tu realidad/i)).toBeTruthy();
+
+    const addPresetBtn = getByRole('button', { name: /\+ Crear botón rápido/i });
+    fireEvent.press(addPresetBtn);
+
+    fireEvent.changeText(getByPlaceholderText(/Nombre del botón/i), 'CARRO');
+    fireEvent.changeText(getByPlaceholderText(/Monto fijo opcional/i), '50000');
+    fireEvent.press(getByRole('button', { name: /Guardar botón/i }));
+
+    expect(getByText(/CARRO · \$ 50\.000/i)).toBeTruthy();
+
+    // Activar mi Guaca
+    fireEvent.press(getByRole('button', { name: 'Activar mi Guaca' }));
+
+    expect(onCompleteMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userName: 'Mateo',
+        netMonthlyIncome: 0,
+        monthStartDay: 1,
+        initialPresets: expect.arrayContaining([
+          expect.objectContaining({
+            name: 'CARRO',
+            defaultAmount: 50000,
+          }),
+        ]),
       })
     );
   });

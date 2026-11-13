@@ -357,6 +357,38 @@ describe('Screens & Navigation Flow', () => {
       const { getByText } = render(<HomeScreen />);
       expect(getByText(/Por aquí todavía no se ha movido ni una moneda/i)).toBeTruthy();
     });
+
+    it('renders "Anotar al instante" section with "Me enviaron plata", quick presets and navigates with params', () => {
+      useFinanceStore.setState({
+        quickPresets: [
+          {
+            id: 'preset-carro',
+            name: 'CARRO',
+            type: 'expense',
+            defaultAmount: 50000,
+            pillar: 'leisure',
+            categoryId: 'carro',
+            createdAt: '2026-01-01',
+            updatedAt: '2026-01-01',
+          },
+        ],
+      });
+
+      const { getByText, getByRole } = render(<HomeScreen />);
+
+      // Sección Anotar al instante
+      expect(getByText('Anotar al instante')).toBeTruthy();
+
+      // Botón "Me enviaron plata"
+      const incomeQuickBtn = getByRole('button', { name: /Me enviaron plata/i });
+      fireEvent.press(incomeQuickBtn);
+      expect(mockPush).toHaveBeenCalledWith('/quick-record?initialType=income');
+
+      // Botón preset CARRO
+      const carroChip = getByRole('button', { name: /CARRO · \$ 50\.000/i });
+      fireEvent.press(carroChip);
+      expect(mockPush).toHaveBeenCalledWith('/quick-record?presetId=preset-carro');
+    });
   });
 
   describe('Movements Screen', () => {

@@ -18,6 +18,7 @@ import {
   Debt,
   FinancialPillar,
   LeakFrequency,
+  QuickPreset,
   SavingsGoal,
   SubscriptionLeak,
   Transaction,
@@ -31,6 +32,8 @@ import {
 import {
   validateDays,
   validateName,
+  validateNonNegativeAmount,
+  validatePillar,
   validatePositiveAmount,
   validateTransferWallets,
 } from '../domain/validation';
@@ -38,12 +41,14 @@ import { roundCOP } from '../utils/formatters';
 import {
   BackupImportResult,
   CompleteOnboardingInput,
+  CreateQuickPresetInput,
   MonthlyCoachSummary,
   OnboardingResult,
   PaginatedResult,
   SQLiteExecutor,
   TransactionQueryOptions,
   TransactionUndoRecord,
+  UpdateQuickPresetInput,
 } from './types';
 
 function generateId(prefix: string): string {
@@ -1109,6 +1114,36 @@ export class GuacaRepository {
           }
         }
       }
+
+      // 4. Crear presets iniciales
+      if (input.initialPresets && input.initialPresets.length > 0) {
+        for (const preset of input.initialPresets) {
+          await this.createQuickPreset(preset);
+        }
+        // Asegurar que exista al menos un atajo de ingreso sin duplicar
+        const hasIncomePreset = input.initialPresets.some((p) => p.type === 'income');
+        if (!hasIncomePreset) {
+          await this.createQuickPreset({
+            name: 'Me enviaron plata',
+            type: 'income',
+            defaultAmount: 0,
+            pillar: 'income',
+            categoryId: 'me_enviaron',
+            icon: 'ArrowDownLeft',
+          });
+        }
+      } else {
+        // Presets base útiles por defecto
+        const defaultPresets: CreateQuickPresetInput[] = [
+          { name: 'Comidas', type: 'expense', defaultAmount: 0, pillar: 'leisure', categoryId: 'comidas', icon: 'Coffee' },
+          { name: 'Transporte', type: 'expense', defaultAmount: 0, pillar: 'vital', categoryId: 'transporte', icon: 'Bus' },
+          { name: 'Me enviaron plata', type: 'income', defaultAmount: 0, pillar: 'income', categoryId: 'me_enviaron', icon: 'ArrowDownLeft' },
+          { name: 'Mercado', type: 'expense', defaultAmount: 0, pillar: 'vital', categoryId: 'mercado', icon: 'ShoppingCart' },
+        ];
+        for (const preset of defaultPresets) {
+          await this.createQuickPreset(preset);
+        }
+      }
     });
 
     return {
@@ -1215,6 +1250,131 @@ export class GuacaRepository {
       healthStatus,
       emergencyFund,
     };
+  }
+
+  // ========================================================
+  // 8. Quick Presets (Botones Rápidos)
+  // ========================================================
+
+  async listQuickPresets(): Promise<QuickPreset[]> {
+    const rows = await this.db.getAllAsync<Record<string, unknown>>(
+      'SELECT * FROM quick_presets ORDER BY created_at ASC;'
+    );
+    return rows.map((r) => this.mapRowToQuickPreset(r));
+  }
+
+  async getQuickPresetById(id: string): Promise<QuickPreset | null> {
+    const row = await this.db.getFirstAsync<Record<string, unknown>>(
+      'SELECT * FROM quick_presets WHERE id = ?;',
+      [id]
+    );
+    return row ? this.mapRowToQuickPreset(row) : null;
+  }
+
+  async createQuickPreset(input: CreateQuickPresetInput): Promise<QuickPreset> {
+    const nameVal = validateName(input.name, 'El nombre del botón rápido');
+    if (!nameVal.isValid) throw new Error(nameVal.error);
+
+    const amountVal = validateNonNegativeAmount(
+      input.defaultAmount ?? 0,
+      'El monto predeterminado'
+    );
+    if (!amountVal.isValid) throw new Error(amountVal.error);
+
+    const pillarVal = validatePillar(input.pillar);
+    if (!pillarVal.isValid) throw new Error(pillarVal.error);
+
+    if (input.type !== 'expense' && input.type !== 'income') {
+      throw new Error('El tipo debe ser "expense" o "income".');
+    }
+
+    if (!input.categoryId || input.categoryId.trim() === '') {
+      throw new Error('Debes asociar una categoría válida al botón rápido.');
+    }
+
+    const id = input.id || generateId('preset');
+    const now = new Date().toISOString();
+    const defaultAmount = amountVal.value ?? 0;
+
+    await this.db.runAsync(
+      `INSERT INTO quick_presets (
+        id, name, type, default_amount, pillar, category_id, icon, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        id,
+        nameVal.value!,
+        input.type,
+        defaultAmount,
+        pillarVal.value!,
+        input.categoryId.trim(),
+        input.icon ?? null,
+        now,
+        now,
+      ]
+    );
+
+    const created = await this.getQuickPresetById(id);
+    if (!created) throw new Error('No se pudo crear el botón rápido.');
+    return created;
+  }
+
+  async updateQuickPreset(
+    id: string,
+    partial: UpdateQuickPresetInput
+  ): Promise<QuickPreset> {
+    const existing = await this.getQuickPresetById(id);
+    if (!existing) throw new Error('El botón rápido no existe.');
+
+    const name = partial.name !== undefined ? partial.name : existing.name;
+    const nameVal = validateName(name, 'El nombre del botón rápido');
+    if (!nameVal.isValid) throw new Error(nameVal.error);
+
+    const defaultAmount =
+      partial.defaultAmount !== undefined ? partial.defaultAmount : existing.defaultAmount;
+    const amountVal = validateNonNegativeAmount(defaultAmount, 'El monto predeterminado');
+    if (!amountVal.isValid) throw new Error(amountVal.error);
+
+    const pillar = partial.pillar !== undefined ? partial.pillar : existing.pillar;
+    const pillarVal = validatePillar(pillar);
+    if (!pillarVal.isValid) throw new Error(pillarVal.error);
+
+    const type = partial.type !== undefined ? partial.type : existing.type;
+    if (type !== 'expense' && type !== 'income') {
+      throw new Error('El tipo debe ser "expense" o "income".');
+    }
+
+    const categoryId =
+      partial.categoryId !== undefined ? partial.categoryId.trim() : existing.categoryId;
+    if (!categoryId) {
+      throw new Error('Debes asociar una categoría válida al botón rápido.');
+    }
+
+    const icon = partial.icon !== undefined ? partial.icon : existing.icon;
+    const now = new Date().toISOString();
+
+    await this.db.runAsync(
+      `UPDATE quick_presets SET
+        name = ?, type = ?, default_amount = ?, pillar = ?, category_id = ?, icon = ?, updated_at = ?
+      WHERE id = ?;`,
+      [
+        nameVal.value!,
+        type,
+        amountVal.value!,
+        pillarVal.value!,
+        categoryId,
+        icon ?? null,
+        now,
+        id,
+      ]
+    );
+
+    const updated = await this.getQuickPresetById(id);
+    if (!updated) throw new Error('No se pudo actualizar el botón rápido.');
+    return updated;
+  }
+
+  async deleteQuickPreset(id: string): Promise<void> {
+    await this.db.runAsync('DELETE FROM quick_presets WHERE id = ?;', [id]);
   }
 
   // ========================================================
@@ -1424,6 +1584,20 @@ export class GuacaRepository {
       targetDate: (row['target_date'] as string) || undefined,
       icon: (row['icon'] as string) || undefined,
       isCompleted: row['is_completed'] === 1,
+      createdAt: row['created_at'] as string,
+      updatedAt: row['updated_at'] as string,
+    };
+  }
+
+  private mapRowToQuickPreset(row: Record<string, unknown>): QuickPreset {
+    return {
+      id: row['id'] as string,
+      name: row['name'] as string,
+      type: row['type'] as 'expense' | 'income',
+      defaultAmount: (row['default_amount'] as number) || 0,
+      pillar: row['pillar'] as FinancialPillar,
+      categoryId: row['category_id'] as string,
+      icon: (row['icon'] as string) || undefined,
       createdAt: row['created_at'] as string,
       updatedAt: row['updated_at'] as string,
     };
