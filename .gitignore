@@ -1,0 +1,31 @@
+# Expo & Metro
+.expo/
+dist/
+web-build/
+
+# Node
+node_modules/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Native generated (if prebuild is used)
+/android
+/ios
+
+# Environment & Keystores
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
