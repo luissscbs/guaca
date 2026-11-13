@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   GUACA DESIGN SYSTEM v2: TOKENS SEMÁNTICOS (React Native + Expo SDK 52 + NativeWind v4)
+   Paleta: Esmeralda Bóveda & Piedra Fría (Verificada WCAG AA >= 4.5:1 en todos los pares)
+   Tipografía: Manrope (UI y Títulos) + JetBrains Mono (Cifras COP)
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* Superficies y Fondos (Modo Claro Diurno) */
+    --bg-canvas: 246 248 247;           /* #F6F8F7 */
+    --bg-surface: 255 255 255;          /* #FFFFFF */
+    --bg-elevated: 237 242 240;         /* #EDF2F0 */
+    --bg-subtle: 227 236 232;           /* #E3ECE8 */
+
+    /* Texto y Jerarquía (WCAG AA comprobado matemáticamente >= 4.5:1) */
+    --text-primary: 15 29 24;           /* #0F1D18 (14.41:1 a 17.37:1) */
+    --text-secondary: 56 75 68;         /* #384B44 (7.72:1 a 9.30:1) */
+    --text-muted: 72 90 83;             /* #485A53 (6.09:1 a 7.34:1) */
+    --text-on-brand: 255 255 255;       /* #FFFFFF (6.48:1 sobre brand-primary) */
+
+    /* Bordes y Divisores (1px sutil para estructura sin tarjetas anidadas) */
+    --border-subtle: 220 229 225;       /* #DCE5E1 */
+    --border-strong: 184 201 193;       /* #B8C9C1 */
+
+    /* Identidad de Marca (Esmeralda Bóveda) */
+    --brand-primary: 11 107 83;         /* #0B6B53 (5.38:1 a 6.48:1) */
+    --brand-primary-pressed: 8 82 63;   /* #08523F */
+    --brand-soft: 221 243 236;          /* #DDF3EC */
+
+    /* Semáforo Financiero (WCAG AA >= 5.2:1 en todas las superficies claras) */
+    --finance-vital: 29 78 216;         /* #1D4ED8 (5.56:1 a 6.70:1) Mínimo Vital */
+    --finance-vital-soft: 219 234 254;  /* #DBEAFE */
+
+    --finance-growth: 17 107 52;        /* #116B34 (5.49:1 a 6.61:1) Capacidad de Ahorro */
+    --finance-growth-soft: 220 252 231; /* #DCFCE7 */
+
+    --finance-warning: 154 67 6;        /* #9A4306 (5.48:1 a 6.60:1) Fuga u Observación */
+    --finance-warning-soft: 254 243 199;/* #FEF3C7 */
+
+    --finance-danger: 190 18 60;        /* #BE123C (5.22:1 a 6.29:1) Riesgo Mínimo Vital */
+    --finance-danger-soft: 255 228 230; /* #FFE4E6 */
+  }
+
+  .dark {
+    /* Superficies y Fondos (Modo Oscuro OLED) */
+    --bg-canvas: 9 15 13;               /* #090F0D */
+    --bg-surface: 18 28 24;             /* #121C18 */
+    --bg-elevated: 26 40 35;            /* #1A2823 */
+    --bg-subtle: 33 50 44;              /* #21322C */
+
+    /* Texto y Jerarquía (WCAG AA comprobado matemáticamente >= 4.5:1) */
+    --text-primary: 236 243 240;        /* #ECF3F0 (11.97:1 a 17.17:1) */
+    --text-secondary: 149 168 160;      /* #95A8A0 (5.39:1 a 7.72:1) */
+    --text-muted: 133 158 148;          /* #859E94 (4.70:1 a 6.74:1) */
+    --text-on-brand: 6 35 27;           /* #06231B (8.78:1 sobre brand-primary OLED) */
+
+    /* Bordes y Divisores (Separación nítida de tarjetas sobre OLED) */
+    --border-subtle: 39 61 53;          /* #273D35 */
+    --border-strong: 61 92 80;          /* #3D5C50 */
+
+    /* Identidad de Marca (Esmeralda Luminoso) */
+    --brand-primary: 45 212 168;        /* #2DD4A8 (7.12:1 a 10.22:1) */
+    --brand-primary-pressed: 20 184 142;/* #14B88E */
+    --brand-soft: 17 50 41;             /* #113229 */
+
+    /* Semáforo Financiero en Oscuro OLED (WCAG AA >= 5.0:1 en todas las superficies) */
+    --finance-vital: 96 165 250;        /* #60A5FA (5.30:1 a 7.61:1) */
+    --finance-vital-soft: 23 37 84;     /* #172554 */
+
+    --finance-growth: 74 222 128;       /* #4ADE80 (7.74:1 a 11.10:1) */
+    --finance-growth-soft: 5 46 22;     /* #052E16 */
+
+    --finance-warning: 251 191 36;      /* #FBBF24 (8.08:1 a 11.59:1) */
+    --finance-warning-soft: 59 33 6;    /* #3B2106 */
+
+    --finance-danger: 251 113 133;      /* #FB7185 (5.01:1 a 7.19:1) */
+    --finance-danger-soft: 63 11 25;    /* #3F0B19 */
+  }
+}
