@@ -26,7 +26,7 @@ const WALLET_TYPE_LABELS: Record<WalletType, string> = {
   bank: 'Cuenta Bancaria',
   cash: 'Efectivo',
   digital: 'Billetera Digital',
-  vault: 'Bóveda Intocable',
+  vault: 'Tu Guaca',
 };
 
 function getWalletIcon(type: WalletType) {
@@ -82,7 +82,7 @@ export function WalletCard({
           <View className="flex-row items-center bg-brand-soft px-2.5 py-1 rounded-full border border-brand/20">
             <ShieldCheck size={14} color={PALETTE.light.brandPrimary} />
             <Text className="text-xs font-sans-semibold text-brand ml-1">
-              Bóveda protegida
+              Tu Guaca
             </Text>
           </View>
         )}
