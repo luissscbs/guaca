@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleProp, ViewStyle, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleProp, ViewStyle, ScrollView } from 'react-native';
 import { useColorScheme } from 'nativewind';
-import { Shield, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react-native';
-import { VitalBreakdown } from '../../domain/types';
+import { Shield, Sparkles, ArrowRight, ArrowLeft, Briefcase, GraduationCap, TrendingUp } from 'lucide-react-native';
+import { UserProfileType, VitalBreakdown } from '../../domain/types';
 import { calculateVitalMinimum } from '../../domain/coach';
 import { parseCOPInput } from '../../utils/formatters';
 import { GuacaInput } from '../atoms/GuacaInput';
@@ -20,11 +20,13 @@ export interface OnboardingCompleteData {
   netMonthlyIncome: number;
   monthStartDay: number;
   vitalBreakdown: VitalBreakdown;
+  profileType?: UserProfileType;
 }
 
 export interface OnboardingWizardProps {
   onComplete: (data: OnboardingCompleteData) => void;
   initialStep?: number;
+  initialProfileType?: UserProfileType;
   style?: StyleProp<ViewStyle>;
   className?: string;
   testID?: string;
@@ -33,6 +35,7 @@ export interface OnboardingWizardProps {
 export function OnboardingWizard({
   onComplete,
   initialStep = 1,
+  initialProfileType,
   style,
   className = '',
   testID,
@@ -42,6 +45,7 @@ export function OnboardingWizard({
   const palette = isDark ? PALETTE.dark : PALETTE.light;
 
   const [step, setStep] = useState<number>(initialStep);
+  const [profileType, setProfileType] = useState<UserProfileType | undefined>(initialProfileType);
 
   // Paso 1
   const [userName, setUserName] = useState<string>('');
@@ -106,6 +110,7 @@ export function OnboardingWizard({
       netMonthlyIncome: parseCOPInput(incomeStr),
       monthStartDay: parseInt(payDayStr, 10) || 1,
       vitalBreakdown,
+      ...(profileType ? { profileType } : {}),
     });
   };
 
@@ -178,6 +183,80 @@ export function OnboardingWizard({
             <Text className="text-xs font-mono-semibold text-brand">✓ Confirmada</Text>
           </View>
 
+          {/* Selector de Perfil */}
+          <View className="pt-2">
+            <Text className="text-xs font-sans-bold text-text-primary mb-2">
+              ¿Cómo recibes tu plata?
+            </Text>
+            <View className="flex-row gap-2">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Tengo sueldo fijo"
+                accessibilityState={{ selected: profileType === 'salary' }}
+                onPress={() => setProfileType('salary')}
+                className={`flex-1 p-2.5 rounded-sm border min-h-[48px] justify-center ${
+                  profileType === 'salary'
+                    ? 'bg-brandSoft/60 border-brand'
+                    : 'bg-bg-subtle border-border-subtle'
+                }`}
+              >
+                <View className="flex-row items-center mb-1">
+                  <Briefcase size={14} color={palette.brandPrimary} />
+                  <Text className="ml-1.5 text-xs font-sans-bold text-text-primary">
+                    Sueldo
+                  </Text>
+                </View>
+                <Text className="text-[10px] font-sans text-text-muted">
+                  Tengo sueldo fijo
+                </Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Soy estudiante / Recibo mesada"
+                accessibilityState={{ selected: profileType === 'student' }}
+                onPress={() => setProfileType('student')}
+                className={`flex-1 p-2.5 rounded-sm border min-h-[48px] justify-center ${
+                  profileType === 'student'
+                    ? 'bg-brandSoft/60 border-brand'
+                    : 'bg-bg-subtle border-border-subtle'
+                }`}
+              >
+                <View className="flex-row items-center mb-1">
+                  <GraduationCap size={14} color={palette.brandPrimary} />
+                  <Text className="ml-1.5 text-xs font-sans-bold text-text-primary">
+                    Estudiante
+                  </Text>
+                </View>
+                <Text className="text-[10px] font-sans text-text-muted">
+                  Soy estudiante
+                </Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Soy independiente / Mi plata varía"
+                accessibilityState={{ selected: profileType === 'variable' }}
+                onPress={() => setProfileType('variable')}
+                className={`flex-1 p-2.5 rounded-sm border min-h-[48px] justify-center ${
+                  profileType === 'variable'
+                    ? 'bg-brandSoft/60 border-brand'
+                    : 'bg-bg-subtle border-border-subtle'
+                }`}
+              >
+                <View className="flex-row items-center mb-1">
+                  <TrendingUp size={14} color={palette.brandPrimary} />
+                  <Text className="ml-1.5 text-xs font-sans-bold text-text-primary">
+                    Variable
+                  </Text>
+                </View>
+                <Text className="text-[10px] font-sans text-text-muted">
+                  Independiente
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
           <View className="pt-2">
             <Text className="text-xs font-sans-bold text-text-primary mb-2">
               Tu primera cuenta o billetera
@@ -221,10 +300,16 @@ export function OnboardingWizard({
         <View className="space-y-3">
           <View className="mb-2">
             <Text className="text-lg font-sans-bold text-text-primary">
-              Tus Ingresos Mensuales
+              {profileType === 'student'
+                ? 'Tu mesada o apoyo del mes'
+                : profileType === 'variable'
+                ? 'Tus Ingresos Promedio'
+                : 'Tus Ingresos Mensuales'}
             </Text>
             <Text className="text-xs font-sans text-text-secondary mt-0.5">
-              Para saber con cuánta platica cuentas para blindar tu vida.
+              {profileType === 'student'
+                ? 'Para saber con cuánta platica cuentas para blindar tus gastos y metas.'
+                : 'Para saber con cuánta platica cuentas para blindar tu vida.'}
             </Text>
           </View>
 
@@ -287,8 +372,9 @@ export function OnboardingWizard({
               </Text>
             </View>
             <Text className="text-xs font-sans text-text-secondary mt-1">
-              La suma exacta de lo que necesitas para techo, comida y servicios. Nadie
-              toca este dinero.
+              {profileType === 'student'
+                ? 'La suma exacta de lo que necesitas para techo, comida y servicios. Si vives con tu familia, deja Arriendo o Servicios en $0.'
+                : 'La suma exacta de lo que necesitas para techo, comida y servicios. Nadie toca este dinero.'}
             </Text>
           </View>
 
