@@ -105,26 +105,28 @@ export default function HomeScreen() {
                 </Text>
               </Pressable>
 
-              {quickPresets.map((preset) => (
-                <Pressable
-                  key={preset.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${preset.name}${
-                    preset.defaultAmount > 0
-                      ? ` · $ ${preset.defaultAmount.toLocaleString('es-CO')}`
-                      : ''
-                  }`}
-                  onPress={() => router.push(`/quick-record?presetId=${preset.id}`)}
-                  className="flex-row items-center bg-bg-surface border border-border-subtle px-3 py-2 rounded-full min-h-[44px]"
-                >
-                  <Text className="text-xs font-sans-medium text-text-primary">
-                    {preset.name}
-                    {preset.defaultAmount > 0
-                      ? ` · $ ${preset.defaultAmount.toLocaleString('es-CO')}`
-                      : ''}
-                  </Text>
-                </Pressable>
-              ))}
+              {quickPresets.map((preset) => {
+                const amountText =
+                  preset.defaultAmount > 0
+                    ? isPrivate
+                      ? ' · $ •••••••'
+                      : ` · $ ${preset.defaultAmount.toLocaleString('es-CO')}`
+                    : '';
+                return (
+                  <Pressable
+                    key={preset.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${preset.name}${amountText}`}
+                    onPress={() => router.push(`/quick-record?presetId=${preset.id}`)}
+                    className="flex-row items-center bg-bg-surface border border-border-subtle px-3 py-2 rounded-full min-h-[44px]"
+                  >
+                    <Text className="text-xs font-sans-medium text-text-primary">
+                      {preset.name}
+                      {amountText}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </ScrollView>
         </View>

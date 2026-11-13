@@ -124,16 +124,44 @@ export function QuickRecordSheet({
   const handleSaveNewPreset = async () => {
     if (!newPresetName.trim()) return;
     const amt = parseCOPInput(newPresetAmount);
-    await onCreatePreset?.({
-      name: newPresetName.trim().toUpperCase(),
-      type: 'expense',
-      defaultAmount: amt > 0 ? amt : undefined,
-      categoryId: categoryId || 'carro',
-      pillar: 'leisure',
-    });
-    setNewPresetName('');
-    setNewPresetAmount('');
-    setShowNewPresetForm(false);
+    try {
+      await onCreatePreset?.({
+        name: newPresetName.trim().toUpperCase(),
+        type: 'expense',
+        defaultAmount: amt > 0 ? amt : undefined,
+        categoryId: categoryId || 'carro',
+        pillar: 'leisure',
+      });
+      setNewPresetName('');
+      setNewPresetAmount('');
+      setShowNewPresetForm(false);
+      setErrorMessage('');
+    } catch (e) {
+      setErrorMessage('No pudimos guardar el botón rápido. Intenta de nuevo.');
+    }
+  };
+
+  const handleUpdatePresetPrice = async () => {
+    if (!selectedPreset || !onUpdatePreset) return;
+    try {
+      await onUpdatePreset(selectedPreset.id, { defaultAmount: numericAmount });
+      setErrorMessage('');
+    } catch (e) {
+      setErrorMessage('No pudimos actualizar el botón rápido. Intenta de nuevo.');
+    }
+  };
+
+  const handleDeletePreset = async (id: string) => {
+    if (!onDeletePreset) return;
+    try {
+      await onDeletePreset(id);
+      if (selectedPresetId === id) {
+        setSelectedPresetId(undefined);
+      }
+      setErrorMessage('');
+    } catch (e) {
+      setErrorMessage('No pudimos eliminar el botón rápido.');
+    }
   };
 
   const handleSubmit = () => {
@@ -366,7 +394,7 @@ export function QuickRecordSheet({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Actualizar precio fijo de ${selectedPreset.name} a $ ${numericAmount.toLocaleString('es-CO')}`}
-            onPress={() => onUpdatePreset?.(selectedPreset.id, { defaultAmount: numericAmount })}
+            onPress={handleUpdatePresetPrice}
             className="mt-2 p-2 bg-brandSoft/40 border border-brand/30 rounded-sm items-center justify-center min-h-[44px]"
           >
             <Text className="text-xs font-sans-bold text-brand">

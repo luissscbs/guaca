@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import {
   MonthHealthPanel,
   EmergencyFundGauge,
@@ -386,7 +386,7 @@ describe('Organisms: QuickRecordSheet', () => {
     );
   });
 
-  it('supports smart presets, auto-filling amount, offering to update fixed price, and displays "Me enviaron plata" with custom note label', () => {
+  it('supports smart presets, auto-filling amount, offering to update fixed price, and displays "Me enviaron plata" with custom note label', async () => {
     const onSubmitMock = jest.fn();
     const onUpdatePresetMock = jest.fn();
     const dummyPresets = [
@@ -427,7 +427,9 @@ describe('Organisms: QuickRecordSheet', () => {
       name: /Actualizar precio fijo de CARRO a \$ 60\.000/i,
     });
     expect(updatePriceBtn).toBeTruthy();
-    fireEvent.press(updatePriceBtn);
+    await act(async () => {
+      fireEvent.press(updatePriceBtn);
+    });
     expect(onUpdatePresetMock).toHaveBeenCalledWith('p1', { defaultAmount: 60000 });
 
     // Cambiar a pestaña "Me enviaron plata"
@@ -437,6 +439,65 @@ describe('Organisms: QuickRecordSheet', () => {
     // Debe mostrar la etiqueta adaptada
     expect(getByText('¿En qué fue o quién te envió la plata?')).toBeTruthy();
     expect(getByPlaceholderText(/Ej: Para la semana, comida, pasajes/i)).toBeTruthy();
+  });
+
+  it('handles async errors gracefully in onCreatePreset and onUpdatePreset', async () => {
+    const onCreatePresetRejectMock = jest.fn().mockRejectedValue(new Error('Fallo al guardar'));
+    const onUpdatePresetRejectMock = jest.fn().mockRejectedValue(new Error('Fallo al actualizar'));
+
+    const dummyPresets = [
+      {
+        id: 'p1',
+        name: 'CARRO',
+        type: 'expense' as const,
+        defaultAmount: 50000,
+        pillar: 'leisure' as const,
+        categoryId: 'carro',
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+      },
+    ];
+
+    const { getByText, getByRole, getByPlaceholderText, findByText } = render(
+      <QuickRecordSheet
+        wallets={dummyWallets}
+        onSubmit={jest.fn()}
+        presets={dummyPresets}
+        onCreatePreset={onCreatePresetRejectMock}
+        onUpdatePreset={onUpdatePresetRejectMock}
+        initialType="expense"
+      />
+    );
+
+    // 1. Probar error en onUpdatePreset
+    const presetBtn = getByRole('button', { name: /CARRO · \$ 50\.000/i });
+    fireEvent.press(presetBtn);
+
+    const amountInput = getByPlaceholderText('0');
+    fireEvent.changeText(amountInput, '65000');
+
+    const updatePriceBtn = getByRole('button', {
+      name: /Actualizar precio fijo de CARRO a \$ 65\.000/i,
+    });
+    await act(async () => {
+      fireEvent.press(updatePriceBtn);
+    });
+
+    // Debe atrapar el error y mostrar mensaje amigable sin explotar
+    expect(await findByText(/No pudimos actualizar el botón/i)).toBeTruthy();
+
+    // 2. Probar error en onCreatePreset
+    const newBtn = getByRole('button', { name: /\+ Nuevo/i });
+    fireEvent.press(newBtn);
+
+    const nameInput = getByPlaceholderText(/Nombre del botón/i);
+    fireEvent.changeText(nameInput, 'GASOLINA');
+    const saveBtn = getByRole('button', { name: 'Guardar' });
+    await act(async () => {
+      fireEvent.press(saveBtn);
+    });
+
+    expect(await findByText(/No pudimos guardar el botón/i)).toBeTruthy();
   });
 });
 
