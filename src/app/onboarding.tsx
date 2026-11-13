@@ -30,6 +30,7 @@ export default function OnboardingScreen() {
         monthStartDay: data.monthStartDay,
         seedBudgets: true,
         profileType: data.profileType || 'salary',
+        initialPresets: data.initialPresets,
       });
 
       // Asegurar que exista la bóveda 'Mi Guaca'

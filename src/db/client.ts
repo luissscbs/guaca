@@ -139,7 +139,8 @@ class InMemorySQLiteExecutor implements SQLiteExecutor {
     // sqlite_master table/index checks
     if (/SELECT\s+name\s+FROM\s+sqlite_master/i.test(trimmed)) {
       const isTable = trimmed.includes("type='table'") || cleanParams.includes('table');
-      const targetName = (cleanParams.find((p) => p !== 'table' && p !== 'index') || cleanParams[0]) as string;
+      const literalMatch = trimmed.match(/name\s*=\s*'([a-zA-Z0-9_]+)'/i);
+      const targetName = (cleanParams.find((p) => p !== 'table' && p !== 'index') || cleanParams[0] || (literalMatch ? literalMatch[1] : null)) as string;
 
       if (isTable) {
         if (targetName && this.state.tables[targetName]) {

@@ -41,6 +41,7 @@ export async function exportBackupPayload(
     budgets,
     subscriptions,
     savingsGoals,
+    quickPresets,
   ] = await Promise.all([
     repo.getSettings(),
     repo.listWallets({ includeArchived: true }),
@@ -50,6 +51,7 @@ export async function exportBackupPayload(
     repo.listBudgets(),
     repo.listSubscriptions(),
     repo.listSavingsGoals(),
+    repo.listQuickPresets(),
   ]);
 
   if (!settings) {
@@ -73,6 +75,7 @@ export async function exportBackupPayload(
     budgets,
     subscriptions,
     savingsGoals,
+    quickPresets,
   };
 }
 
@@ -159,6 +162,7 @@ export async function importBackupJson(
     await db.withTransactionAsync(async () => {
       // Limpiar tablas existentes en orden inverso de dependencias
       await db.execAsync(`
+        DELETE FROM quick_presets;
         DELETE FROM transactions;
         DELETE FROM budgets;
         DELETE FROM subscriptions;
@@ -323,6 +327,28 @@ export async function importBackupJson(
           ]
         );
       }
+
+      // I. quick_presets (opcional para retrocompatibilidad)
+      if (payload.quickPresets && payload.quickPresets.length > 0) {
+        for (const q of payload.quickPresets) {
+          await db.runAsync(
+            `INSERT INTO quick_presets (
+              id, name, type, default_amount, pillar, category_id, icon, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            [
+              q.id,
+              q.name,
+              q.type,
+              q.defaultAmount ?? 0,
+              q.pillar,
+              q.categoryId,
+              q.icon ?? null,
+              q.createdAt || now,
+              q.updatedAt || now,
+            ]
+          );
+        }
+      }
     });
 
     return {
@@ -335,6 +361,7 @@ export async function importBackupJson(
         budgets: payload.budgets.length,
         subscriptions: payload.subscriptions.length,
         savingsGoals: payload.savingsGoals.length,
+        quickPresets: payload.quickPresets?.length ?? 0,
       },
     };
   } catch (err: unknown) {

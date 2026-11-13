@@ -9,17 +9,22 @@ export interface CategoryDefinition {
 }
 
 export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
-  { id: 'vivienda', name: 'Vivienda', pillar: 'vital', iconName: 'Home', color: '#1D4ED8' },
-  { id: 'mercado', name: 'Mercado', pillar: 'vital', iconName: 'ShoppingCart', color: '#1D4ED8' },
-  { id: 'servicios', name: 'Servicios', pillar: 'vital', iconName: 'Zap', color: '#1D4ED8' },
-  { id: 'transporte', name: 'Transporte', pillar: 'vital', iconName: 'Bus', color: '#1D4ED8' },
+  { id: 'comidas', name: 'Comidas y Almuerzos', pillar: 'leisure', iconName: 'Coffee', color: '#9A4306' },
+  { id: 'transporte', name: 'Transporte y Pasajes', pillar: 'vital', iconName: 'Bus', color: '#1D4ED8' },
+  { id: 'carro', name: 'Carro / Gasolina', pillar: 'leisure', iconName: 'Car', color: '#9A4306' },
+  { id: 'educacion', name: 'U y Estudio', pillar: 'vital', iconName: 'GraduationCap', color: '#1D4ED8' },
+  { id: 'vivienda', name: 'Arriendo / Casa', pillar: 'vital', iconName: 'Home', color: '#1D4ED8' },
+  { id: 'servicios', name: 'Servicios y Celu', pillar: 'vital', iconName: 'Zap', color: '#1D4ED8' },
   { id: 'salud', name: 'Salud y Cuidado', pillar: 'vital', iconName: 'HeartPulse', color: '#1D4ED8' },
-  { id: 'educacion', name: 'Educación', pillar: 'vital', iconName: 'GraduationCap', color: '#1D4ED8' },
-  { id: 'ocio', name: 'Ocio y Salidas', pillar: 'leisure', iconName: 'Coffee', color: '#9A4306' },
+  { id: 'mercado', name: 'Mercado', pillar: 'vital', iconName: 'ShoppingCart', color: '#1D4ED8' },
+  { id: 'ocio', name: 'Salidas y Parches', pillar: 'leisure', iconName: 'Coffee', color: '#9A4306' },
   { id: 'suscripciones', name: 'Suscripciones', pillar: 'leisure', iconName: 'Tv', color: '#9A4306' },
   { id: 'compras', name: 'Compras y Gustos', pillar: 'leisure', iconName: 'ShoppingBag', color: '#9A4306' },
   { id: 'guaca', name: 'Tu Guaca (Ahorro)', pillar: 'growth', iconName: 'ShieldCheck', color: '#116B34' },
   { id: 'deudas', name: 'Pago de Deudas', pillar: 'debt', iconName: 'CreditCard', color: '#BE123C' },
+  { id: 'me_enviaron', name: 'Me enviaron plata', pillar: 'income', iconName: 'ArrowDownLeft', color: '#116B34' },
+  { id: 'mesada', name: 'Mesada / Apoyo', pillar: 'income', iconName: 'Coins', color: '#116B34' },
+  { id: 'trabajo', name: 'Trabajo / Vuelta', pillar: 'income', iconName: 'Briefcase', color: '#116B34' },
   { id: 'ingresos', name: 'Ingresos y Sueldo', pillar: 'income', iconName: 'Wallet', color: '#116B34' },
   { id: 'otros', name: 'Varios', pillar: 'leisure', iconName: 'Tag', color: '#485A53' },
 ];

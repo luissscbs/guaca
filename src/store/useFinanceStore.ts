@@ -14,10 +14,12 @@ import { initDatabase } from '../db/schema';
 import {
   BackupImportResult,
   CompleteOnboardingInput,
+  CreateQuickPresetInput,
   MonthlyCoachSummary,
   SQLiteExecutor,
   TransactionQueryOptions,
   TransactionUndoRecord,
+  UpdateQuickPresetInput,
 } from '../db/types';
 import { calculateSafeAllowance, analyzeSpendingDetective } from '../domain/coach';
 import { planDebtPayoff } from '../domain/debtPlanner';
@@ -28,6 +30,7 @@ import {
   DebtPayoffPlan,
   FinancialPillar,
   LeakFrequency,
+  QuickPreset,
   SafeAllowanceSummary,
   SavingsGoal,
   SpendingDetectiveInsight,
@@ -68,6 +71,7 @@ export interface FinanceState {
   budgets: Budget[];
   subscriptions: SubscriptionLeak[];
   savingsGoals: SavingsGoal[];
+  quickPresets: QuickPreset[];
 
   // Inteligencia de Coach y Deudas
   coachSummary: MonthlyCoachSummary | null;
@@ -134,6 +138,11 @@ export interface FinanceState {
   contributeSavingsGoal: (id: string, amount: number) => Promise<void>;
   deleteSavingsGoal: (id: string) => Promise<void>;
 
+  // Acciones de Botones Rápidos (Quick Presets)
+  addQuickPreset: (input: CreateQuickPresetInput) => Promise<QuickPreset>;
+  updateQuickPreset: (id: string, partial: UpdateQuickPresetInput) => Promise<void>;
+  deleteQuickPreset: (id: string) => Promise<void>;
+
   // Respaldo y Restauración
   exportBackup: (appVersion?: string) => Promise<string>;
   importBackup: (rawJson: string | object) => Promise<BackupImportResult>;
@@ -172,6 +181,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   budgets: [],
   subscriptions: [],
   savingsGoals: [],
+  quickPresets: [],
 
   coachSummary: null,
   safeAllowance: null,
@@ -594,6 +604,53 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
 
   // ==========================================
+  // Botones Rápidos (Quick Presets)
+  // ==========================================
+
+  addQuickPreset: async (input) => {
+    if (!activeRepo) throw new Error('Base de datos no inicializada.');
+    const preset = await activeRepo.createQuickPreset(input);
+    const quickPresets = await activeRepo.listQuickPresets();
+    set({
+      quickPresets,
+      snackbar: {
+        visible: true,
+        message: '¡Listo! Guardamos tu botón rápido',
+        canUndo: false,
+      },
+    });
+    return preset;
+  },
+
+  updateQuickPreset: async (id, partial) => {
+    if (!activeRepo) throw new Error('Base de datos no inicializada.');
+    await activeRepo.updateQuickPreset(id, partial);
+    const quickPresets = await activeRepo.listQuickPresets();
+    set({
+      quickPresets,
+      snackbar: {
+        visible: true,
+        message: '¡Listo! Actualizamos tu botón rápido',
+        canUndo: false,
+      },
+    });
+  },
+
+  deleteQuickPreset: async (id) => {
+    if (!activeRepo) throw new Error('Base de datos no inicializada.');
+    await activeRepo.deleteQuickPreset(id);
+    const quickPresets = await activeRepo.listQuickPresets();
+    set({
+      quickPresets,
+      snackbar: {
+        visible: true,
+        message: 'Eliminamos el botón rápido',
+        canUndo: false,
+      },
+    });
+  },
+
+  // ==========================================
   // Backup & Restore
   // ==========================================
 
@@ -619,7 +676,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   refreshAll: async () => {
     if (!activeRepo) return;
 
-    const [settings, wallets, creditCards, debts, txResult, budgets, subscriptions, savingsGoals] =
+    const [settings, wallets, creditCards, debts, txResult, budgets, subscriptions, savingsGoals, quickPresets] =
       await Promise.all([
         activeRepo.getSettings(),
         activeRepo.listWallets(),
@@ -629,6 +686,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         activeRepo.listBudgets(),
         activeRepo.listSubscriptions(),
         activeRepo.listSavingsGoals(),
+        activeRepo.listQuickPresets(),
       ]);
 
     set({
@@ -641,6 +699,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       budgets,
       subscriptions,
       savingsGoals,
+      quickPresets,
     });
 
     get().refreshDebtPlan();

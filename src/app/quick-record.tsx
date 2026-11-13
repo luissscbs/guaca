@@ -1,21 +1,32 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { X } from 'lucide-react-native';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { PALETTE } from '../constants/theme';
 import { QuickRecordSheet, QuickRecordData } from '../components/organisms/QuickRecordSheet';
+import { TransactionType } from '../domain/types';
 
 export default function QuickRecordScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ initialType?: string; presetId?: string }>();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const palette = isDark ? PALETTE.dark : PALETTE.light;
 
   const wallets = useFinanceStore((state) => state.wallets);
   const addTransaction = useFinanceStore((state) => state.addTransaction);
+  const quickPresets = useFinanceStore((state) => state.quickPresets);
+  const addQuickPreset = useFinanceStore((state) => state.addQuickPreset);
+  const updateQuickPreset = useFinanceStore((state) => state.updateQuickPreset);
+  const deleteQuickPreset = useFinanceStore((state) => state.deleteQuickPreset);
+
+  const initialType: TransactionType =
+    params.initialType === 'income' || params.initialType === 'transfer'
+      ? params.initialType
+      : 'expense';
 
   const handleSubmit = async (data: QuickRecordData) => {
     try {
@@ -60,6 +71,12 @@ export default function QuickRecordScreen() {
           wallets={wallets}
           onSubmit={handleSubmit}
           onClose={() => router.back()}
+          initialType={initialType}
+          presets={quickPresets}
+          initialPresetId={params.presetId}
+          onCreatePreset={addQuickPreset}
+          onUpdatePreset={updateQuickPreset}
+          onDeletePreset={deleteQuickPreset}
         />
       </ScrollView>
     </SafeAreaView>

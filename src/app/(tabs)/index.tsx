@@ -27,6 +27,7 @@ export default function HomeScreen() {
   const detectiveInsights = useFinanceStore((state) => state.detectiveInsights);
   const transactions = useFinanceStore((state) => state.transactions);
   const wallets = useFinanceStore((state) => state.wallets);
+  const quickPresets = useFinanceStore((state) => state.quickPresets);
   const togglePrivateMode = useFinanceStore((state) => state.togglePrivateMode);
 
   const isPrivate = !!settings?.isPrivateMode;
@@ -71,6 +72,61 @@ export default function HomeScreen() {
               onPress={() => router.push('/settings')}
             />
           </View>
+        </View>
+
+        {/* Sección: Anotar al instante */}
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-xs font-sans-bold text-text-primary">
+              Anotar al instante
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="+ Nuevo botón"
+              onPress={() => router.push('/quick-record')}
+              className="px-2 py-0.5"
+            >
+              <Text className="text-[11px] font-sans-medium text-brand">
+                + Nuevo botón
+              </Text>
+            </Pressable>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row py-0.5">
+            <View className="flex-row items-center gap-2">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="💸 Me enviaron plata"
+                onPress={() => router.push('/quick-record?initialType=income')}
+                className="flex-row items-center bg-finance-growthSoft/70 border border-finance-growth/40 px-3 py-2 rounded-full min-h-[44px]"
+              >
+                <Text className="text-xs font-sans-bold text-finance-growth">
+                  💸 Me enviaron plata
+                </Text>
+              </Pressable>
+
+              {quickPresets.map((preset) => (
+                <Pressable
+                  key={preset.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${preset.name}${
+                    preset.defaultAmount > 0
+                      ? ` · $ ${preset.defaultAmount.toLocaleString('es-CO')}`
+                      : ''
+                  }`}
+                  onPress={() => router.push(`/quick-record?presetId=${preset.id}`)}
+                  className="flex-row items-center bg-bg-surface border border-border-subtle px-3 py-2 rounded-full min-h-[44px]"
+                >
+                  <Text className="text-xs font-sans-medium text-text-primary">
+                    {preset.name}
+                    {preset.defaultAmount > 0
+                      ? ` · $ ${preset.defaultAmount.toLocaleString('es-CO')}`
+                      : ''}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </ScrollView>
         </View>
 
         {/* 1. Semáforo del Mes (MonthHealthPanel) */}

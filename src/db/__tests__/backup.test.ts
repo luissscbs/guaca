@@ -247,4 +247,46 @@ describe('Backup & Restore Local JSON (TDD)', () => {
     const wallets = await repo.listWallets();
     expect(wallets[0].name).toBe('Efectivo Personal');
   });
+
+  it('exporta y restaura quickPresets con compatibilidad hacia atrás', async () => {
+    // Crear un preset personalizado
+    await repo.createQuickPreset({
+      name: 'CARRO',
+      type: 'expense',
+      defaultAmount: 50000,
+      pillar: 'vital',
+      categoryId: 'carro',
+      icon: 'car',
+    });
+
+    // 1. Exportar payload y verificar que incluye quickPresets
+    const payload = await exportBackupPayload(db, '1.0.0');
+    expect(payload.quickPresets).toBeDefined();
+    expect(payload.quickPresets!.length).toBeGreaterThanOrEqual(1);
+    expect(payload.quickPresets!.some((p) => p.name === 'CARRO' && p.defaultAmount === 50000)).toBe(true);
+
+    // 2. Restaurar en una base limpia
+    const cleanDb = createInMemoryDatabase();
+    await initDatabase(cleanDb);
+    const cleanRepo = new GuacaRepository(cleanDb);
+
+    const restoreResult = await importBackupJson(cleanDb, JSON.stringify(payload));
+    expect(restoreResult.success).toBe(true);
+
+    const restoredPresets = await cleanRepo.listQuickPresets();
+    expect(restoredPresets.some((p) => p.name === 'CARRO' && p.defaultAmount === 50000)).toBe(true);
+
+    // 3. Retrocompatibilidad: importar un backup antiguo SIN quickPresets no debe fallar
+    const legacyPayload = { ...payload };
+    delete (legacyPayload as any).quickPresets;
+
+    const legacyDb = createInMemoryDatabase();
+    await initDatabase(legacyDb);
+    const legacyRepo = new GuacaRepository(legacyDb);
+
+    const legacyRestoreResult = await importBackupJson(legacyDb, JSON.stringify(legacyPayload));
+    expect(legacyRestoreResult.success).toBe(true);
+    const legacyPresets = await legacyRepo.listQuickPresets();
+    expect(legacyPresets).toEqual([]);
+  });
 });

@@ -1,10 +1,12 @@
 import {
   validatePositiveAmount,
+  validateNonNegativeAmount,
   validateName,
   validateTransferWallets,
   validateDays,
   validateBackupPayload,
   validateProfileType,
+  validatePillar,
 } from '../validation';
 import { BackupPayload } from '../types';
 
@@ -393,6 +395,66 @@ describe('Validation Domain Engine', () => {
     it('rejects non-string values that are not null/undefined', () => {
       expect(validateProfileType(123).isValid).toBe(false);
       expect(validateProfileType({}).isValid).toBe(false);
+    });
+  });
+
+  describe('validateNonNegativeAmount', () => {
+    it('accepts zero (0)', () => {
+      const result = validateNonNegativeAmount(0);
+      expect(result.isValid).toBe(true);
+      expect(result.value).toBe(0);
+      expect(result.error).toBeUndefined();
+    });
+
+    it('accepts positive integer COP amounts', () => {
+      const result = validateNonNegativeAmount(50000);
+      expect(result.isValid).toBe(true);
+      expect(result.value).toBe(50000);
+    });
+
+    it('rounds floating numbers to nearest integer', () => {
+      const result = validateNonNegativeAmount(12500.4);
+      expect(result.isValid).toBe(true);
+      expect(result.value).toBe(12500);
+    });
+
+    it('rejects negative numbers', () => {
+      const result = validateNonNegativeAmount(-500);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toMatch(/no puede ser negativo/i);
+    });
+
+    it('rejects NaN, Infinity, strings, null and undefined', () => {
+      expect(validateNonNegativeAmount(NaN).isValid).toBe(false);
+      expect(validateNonNegativeAmount(Infinity).isValid).toBe(false);
+      expect(validateNonNegativeAmount('0').isValid).toBe(false);
+      expect(validateNonNegativeAmount(null).isValid).toBe(false);
+      expect(validateNonNegativeAmount(undefined).isValid).toBe(false);
+    });
+
+    it('rejects amounts exceeding MAX_SAFE_COP_AMOUNT', () => {
+      const result = validateNonNegativeAmount(100_000_000_000_001);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toMatch(/límite máximo/i);
+    });
+  });
+
+  describe('validatePillar', () => {
+    it('accepts all 6 valid financial pillars', () => {
+      const pillars = ['vital', 'growth', 'leisure', 'debt', 'income', 'transfer'] as const;
+      for (const p of pillars) {
+        const result = validatePillar(p);
+        expect(result.isValid).toBe(true);
+        expect(result.value).toBe(p);
+      }
+    });
+
+    it('rejects invalid or unknown pillars', () => {
+      expect(validatePillar('unknown').isValid).toBe(false);
+      expect(validatePillar('').isValid).toBe(false);
+      expect(validatePillar(null).isValid).toBe(false);
+      expect(validatePillar(undefined).isValid).toBe(false);
+      expect(validatePillar(123).isValid).toBe(false);
     });
   });
 });

@@ -143,6 +143,18 @@ export interface SavingsGoal {
   updatedAt: string;
 }
 
+export interface QuickPreset {
+  id: string;
+  name: string;
+  type: 'expense' | 'income';
+  defaultAmount: number;
+  pillar: FinancialPillar;
+  categoryId: string;
+  icon?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ==========================================
 // 6. Ajustes de Usuario y Respaldo
 // ==========================================
@@ -179,6 +191,7 @@ export interface BackupPayload {
   budgets: Budget[];
   subscriptions: SubscriptionLeak[];
   savingsGoals: SavingsGoal[];
+  quickPresets?: QuickPreset[];
 }
 
 // ==========================================

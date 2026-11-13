@@ -17,6 +17,7 @@ export const TABLE_NAMES = [
   'budgets',
   'subscriptions',
   'savings_goals',
+  'quick_presets',
 ] as const;
 
 export const INDEX_NAMES = [
@@ -31,6 +32,7 @@ export const INDEX_NAMES = [
   'idx_debts_is_paid',
   'idx_subscriptions_is_active',
   'idx_savings_goals_is_completed',
+  'idx_quick_presets_type',
 ] as const;
 
 /**
@@ -148,6 +150,19 @@ const V1_SCHEMA_DDL = `
     updated_at TEXT NOT NULL
   );
 
+  -- 9. Botones Rápidos (Quick Presets)
+  CREATE TABLE IF NOT EXISTS quick_presets (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('expense', 'income')),
+    default_amount INTEGER NOT NULL DEFAULT 0,
+    pillar TEXT NOT NULL CHECK (pillar IN ('vital', 'growth', 'leisure', 'debt', 'income', 'transfer')),
+    category_id TEXT NOT NULL,
+    icon TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   -- Índices de Rendimiento Obligatorios
   CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions (date DESC);
   CREATE INDEX IF NOT EXISTS idx_transactions_date_created ON transactions (date DESC, created_at DESC);
@@ -160,6 +175,7 @@ const V1_SCHEMA_DDL = `
   CREATE INDEX IF NOT EXISTS idx_debts_is_paid ON debts (is_paid);
   CREATE INDEX IF NOT EXISTS idx_subscriptions_is_active ON subscriptions (is_active);
   CREATE INDEX IF NOT EXISTS idx_savings_goals_is_completed ON savings_goals (is_completed);
+  CREATE INDEX IF NOT EXISTS idx_quick_presets_type ON quick_presets (type);
 `;
 
 /**
@@ -201,4 +217,20 @@ export async function initDatabase(db: SQLiteExecutor): Promise<void> {
       await db.execAsync('ALTER TABLE user_settings ADD COLUMN gemini_api_key TEXT;');
     }
   }
+
+  // 5. Migración idempotente para tabla quick_presets si falta en bases existentes
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS quick_presets (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL CHECK (type IN ('expense', 'income')),
+      default_amount INTEGER NOT NULL DEFAULT 0,
+      pillar TEXT NOT NULL CHECK (pillar IN ('vital', 'growth', 'leisure', 'debt', 'income', 'transfer')),
+      category_id TEXT NOT NULL,
+      icon TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_quick_presets_type ON quick_presets (type);
+  `);
 }

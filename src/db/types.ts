@@ -9,6 +9,7 @@ import {
   FinancialPillar,
   MonthHealthResult,
   EmergencyFundResult,
+  QuickPreset,
   Transaction,
   TransactionType,
   UserProfileType,
@@ -95,6 +96,26 @@ export interface CompleteOnboardingInput {
   monthStartDay?: number;
   seedBudgets?: boolean;
   profileType?: UserProfileType;
+  initialPresets?: CreateQuickPresetInput[];
+}
+
+export interface CreateQuickPresetInput {
+  id?: string;
+  name: string;
+  type: 'expense' | 'income';
+  defaultAmount?: number;
+  pillar: FinancialPillar;
+  categoryId: string;
+  icon?: string;
+}
+
+export interface UpdateQuickPresetInput {
+  name?: string;
+  type?: 'expense' | 'income';
+  defaultAmount?: number;
+  pillar?: FinancialPillar;
+  categoryId?: string;
+  icon?: string;
 }
 
 export interface OnboardingResult {
@@ -140,5 +161,6 @@ export interface BackupImportResult {
     budgets: number;
     subscriptions: number;
     savingsGoals: number;
+    quickPresets?: number;
   };
 }

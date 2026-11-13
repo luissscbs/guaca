@@ -125,4 +125,31 @@ describe('Database Schema & Initialization (TDD)', () => {
     expect(row?.user_name).toBe('Carlos');
     expect(row?.profile_type).toBe('salary');
   });
+
+  it('crea la tabla quick_presets con todas sus columnas e índices requeridos', async () => {
+    await initDatabase(db);
+
+    const tableCheck = await db.getFirstAsync<{ name: string }>(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='quick_presets';`
+    );
+    expect(tableCheck?.name).toBe('quick_presets');
+
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(quick_presets);');
+    const colNames = columns.map((c) => c.name);
+
+    expect(colNames).toContain('id');
+    expect(colNames).toContain('name');
+    expect(colNames).toContain('type');
+    expect(colNames).toContain('default_amount');
+    expect(colNames).toContain('pillar');
+    expect(colNames).toContain('category_id');
+    expect(colNames).toContain('icon');
+    expect(colNames).toContain('created_at');
+    expect(colNames).toContain('updated_at');
+
+    const indexCheck = await db.getFirstAsync<{ name: string }>(
+      `SELECT name FROM sqlite_master WHERE type='index' AND name='idx_quick_presets_type';`
+    );
+    expect(indexCheck?.name).toBe('idx_quick_presets_type');
+  });
 });

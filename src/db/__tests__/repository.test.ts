@@ -649,4 +649,141 @@ describe('GuacaRepository (TDD)', () => {
       expect(summary.healthStatus.status).toBe('peace');
     });
   });
+
+  // ========================================================
+  // 8. Quick Presets CRUD
+  // ========================================================
+  describe('Quick Presets CRUD', () => {
+    it('crea, lista, actualiza y elimina botones rápidos', async () => {
+      const initial = await repo.listQuickPresets();
+      expect(initial).toEqual([]);
+
+      const created = await repo.createQuickPreset({
+        name: 'CARRO',
+        type: 'expense',
+        defaultAmount: 50000,
+        pillar: 'leisure',
+        categoryId: 'carro',
+        icon: 'Car',
+      });
+
+      expect(created.id).toBeDefined();
+      expect(created.name).toBe('CARRO');
+      expect(created.defaultAmount).toBe(50000);
+      expect(created.pillar).toBe('leisure');
+      expect(created.categoryId).toBe('carro');
+
+      const list = await repo.listQuickPresets();
+      expect(list.length).toBe(1);
+      expect(list[0].name).toBe('CARRO');
+
+      const updated = await repo.updateQuickPreset(created.id, {
+        name: 'Carro / Gasolina',
+        defaultAmount: 60000,
+      });
+      expect(updated.name).toBe('Carro / Gasolina');
+      expect(updated.defaultAmount).toBe(60000);
+
+      await repo.deleteQuickPreset(created.id);
+      const afterDelete = await repo.listQuickPresets();
+      expect(afterDelete).toEqual([]);
+    });
+
+    it('valida entradas inválidas al crear o actualizar botones rápidos', async () => {
+      await expect(
+        repo.createQuickPreset({
+          name: '',
+          type: 'expense',
+          defaultAmount: 10000,
+          pillar: 'leisure',
+          categoryId: 'comidas',
+        })
+      ).rejects.toThrow();
+
+      await expect(
+        repo.createQuickPreset({
+          name: 'Comidas',
+          type: 'expense',
+          defaultAmount: -5000,
+          pillar: 'leisure',
+          categoryId: 'comidas',
+        })
+      ).rejects.toThrow(/negativo/i);
+
+      await expect(
+        repo.createQuickPreset({
+          name: 'Comidas',
+          type: 'expense',
+          defaultAmount: 10000,
+          pillar: 'invalid_pillar' as any,
+          categoryId: 'comidas',
+        })
+      ).rejects.toThrow(/pilar/i);
+    });
+
+    it('permite defaultAmount en 0 (precio variable)', async () => {
+      const preset = await repo.createQuickPreset({
+        name: 'Transporte',
+        type: 'expense',
+        defaultAmount: 0,
+        pillar: 'vital',
+        categoryId: 'transporte',
+      });
+
+      expect(preset.defaultAmount).toBe(0);
+    });
+  });
+
+  // ========================================================
+  // 9. Onboarding Flexible y Presets Iniciales
+  // ========================================================
+  describe('Onboarding Flexible y Presets Iniciales', () => {
+    it('permite netMonthlyIncome en 0 para usuarios que ingresan solo con su saldo actual', async () => {
+      const result = await repo.completeOnboarding({
+        userName: 'Mateo',
+        netMonthlyIncome: 0,
+        vitalBreakdown: { housing: 0, food: 0, utilities: 0, transport: 0 },
+        initialWalletName: 'Bolsillo',
+        initialWalletBalance: 300000,
+      });
+
+      expect(result.settings.netMonthlyIncome).toBe(0);
+      expect(result.settings.userName).toBe('Mateo');
+      expect(result.wallet?.balance).toBe(300000);
+    });
+
+    it('crea los presets iniciales suministrados y auto-incluye "Me enviaron plata" si falta ingreso', async () => {
+      await repo.completeOnboarding({
+        userName: 'Mateo',
+        netMonthlyIncome: 1500000,
+        vitalBreakdown: { housing: 400000, food: 300000, utilities: 100000, transport: 100000 },
+        initialPresets: [
+          { name: 'Almuerzo Corriente', type: 'expense', defaultAmount: 16000, pillar: 'leisure', categoryId: 'comidas' },
+          { name: 'Pasaje Metro', type: 'expense', defaultAmount: 3200, pillar: 'vital', categoryId: 'transporte' },
+        ],
+      });
+
+      const presets = await repo.listQuickPresets();
+      expect(presets.length).toBe(3);
+      expect(presets.some((p) => p.name === 'Almuerzo Corriente')).toBe(true);
+      expect(presets.some((p) => p.name === 'Pasaje Metro')).toBe(true);
+      // Debe haber asegurado atajo de ingreso sin duplicar
+      const incomePreset = presets.find((p) => p.type === 'income');
+      expect(incomePreset).toBeDefined();
+      expect(incomePreset?.name).toMatch(/Me enviaron plata/i);
+    });
+
+    it('genera presets base útiles si no se suministraron initialPresets', async () => {
+      await repo.completeOnboarding({
+        userName: 'Sofia',
+        netMonthlyIncome: 2000000,
+        vitalBreakdown: { housing: 600000, food: 400000, utilities: 150000, transport: 100000 },
+      });
+
+      const presets = await repo.listQuickPresets();
+      expect(presets.length).toBeGreaterThan(0);
+      expect(presets.some((p) => p.type === 'income')).toBe(true);
+      expect(presets.some((p) => p.type === 'expense')).toBe(true);
+    });
+  });
 });

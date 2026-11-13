@@ -211,4 +211,65 @@ describe('useFinanceStore Zustand (TDD)', () => {
     expect(state.isAiLoading).toBe(false);
     expect(state.aiCoachAdvice).toEqual(advice);
   });
+
+  describe('Quick Presets en Store', () => {
+    it('carga botones rápidos por defecto tras completar el onboarding', async () => {
+      await useFinanceStore.getState().completeOnboarding({
+        userName: 'Felipe',
+        netMonthlyIncome: 0,
+        vitalBreakdown: { housing: 0, food: 0, utilities: 0, transport: 0 },
+        initialWalletName: 'Nequi',
+        initialWalletBalance: 50000,
+      });
+
+      const state = useFinanceStore.getState();
+      expect(state.quickPresets).toBeDefined();
+      expect(state.quickPresets.length).toBeGreaterThanOrEqual(4);
+      expect(state.quickPresets.some((p) => p.name === 'Me enviaron plata')).toBe(true);
+    });
+
+    it('permite agregar, actualizar y eliminar botones rápidos reactivamente con snackbar', async () => {
+      await useFinanceStore.getState().completeOnboarding({
+        userName: 'Felipe',
+        netMonthlyIncome: 2000000,
+        vitalBreakdown: { housing: 500000, food: 300000, utilities: 100000, transport: 50000 },
+        initialWalletName: 'Nequi',
+        initialWalletBalance: 200000,
+      });
+
+      // 1. Agregar botón rápido
+      const created = await useFinanceStore.getState().addQuickPreset({
+        name: 'CARRO',
+        type: 'expense',
+        defaultAmount: 50000,
+        pillar: 'vital',
+        categoryId: 'carro',
+        icon: 'Car',
+      });
+
+      expect(created.id).toBeDefined();
+      expect(created.name).toBe('CARRO');
+      expect(created.defaultAmount).toBe(50000);
+
+      let state = useFinanceStore.getState();
+      expect(state.quickPresets.some((p) => p.id === created.id)).toBe(true);
+      expect(state.snackbar.message).toContain('botón rápido');
+
+      // 2. Actualizar botón rápido
+      await useFinanceStore.getState().updateQuickPreset(created.id, {
+        name: 'CARRO / GASOLINA',
+        defaultAmount: 60000,
+      });
+
+      state = useFinanceStore.getState();
+      const updated = state.quickPresets.find((p) => p.id === created.id);
+      expect(updated?.name).toBe('CARRO / GASOLINA');
+      expect(updated?.defaultAmount).toBe(60000);
+
+      // 3. Eliminar botón rápido
+      await useFinanceStore.getState().deleteQuickPreset(created.id);
+      state = useFinanceStore.getState();
+      expect(state.quickPresets.some((p) => p.id === created.id)).toBe(false);
+    });
+  });
 });
