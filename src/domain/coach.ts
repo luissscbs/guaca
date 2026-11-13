@@ -8,10 +8,16 @@ import { formatCOP, formatMonths, roundCOP } from '../utils/formatters';
 import {
   AnnualizedLeakResult,
   CoachSnapshot,
+  Debt,
   EmergencyFundResult,
   LeakFrequency,
   MonthHealthResult,
   PurchaseSimulationResult,
+  SafeAllowanceSummary,
+  SpendingDetectiveInsight,
+  SubscriptionLeak,
+  Transaction,
+  UserProfileType,
   VitalBreakdown,
 } from './types';
 
@@ -167,13 +173,13 @@ export function calculateEmergencyMonths(params: {
 
   let explanation: string;
   if (monthsCovered < 1.0) {
-    explanation = `Tienes ${formatMonths(monthsCovered)} cubiertos (${daysCovered} días). Tu primera gran meta es alcanzar 1 mes de Mínimo Vital (${formatCOP(goalAmount)}).`;
+    explanation = `Tienes ${formatMonths(monthsCovered)} cubiertos (${daysCovered} días). Tu primera gran meta es alcanzar 1 mes de Mínimo Vital (${formatCOP(goalAmount)}) para Tu Guaca.`;
   } else if (monthsCovered < 3.0) {
-    explanation = `¡Gran avance! Tienes ${formatMonths(monthsCovered)} cubiertos (${daysCovered} días). Tu siguiente escalón son 3 meses (${formatCOP(goalAmount)}).`;
+    explanation = `¡Gran avance! Tienes ${formatMonths(monthsCovered)} cubiertos (${daysCovered} días). Tu siguiente escalón son 3 meses (${formatCOP(goalAmount)}) en Tu Guaca.`;
   } else if (monthsCovered < 6.0) {
-    explanation = `¡Excelente estabilidad! Tienes ${formatMonths(monthsCovered)} cubiertos (${daysCovered} días). Tu meta final de paz son 6 meses (${formatCOP(goalAmount)}).`;
+    explanation = `¡Excelente estabilidad! Tienes ${formatMonths(monthsCovered)} cubiertos (${daysCovered} días). Tu meta final de paz son 6 meses (${formatCOP(goalAmount)}) en Tu Guaca.`;
   } else {
-    explanation = `¡Paz financiera total! Tienes ${formatMonths(monthsCovered)} cubiertos (${daysCovered} días). Tu colchón de tranquilidad está completamente blindado.`;
+    explanation = `¡Paz financiera total! Tienes ${formatMonths(monthsCovered)} cubiertos (${daysCovered} días). Tu Guaca (colchón de tranquilidad) está completamente blindada.`;
   }
 
   return {
@@ -266,10 +272,11 @@ export function simulatePurchase(params: {
 
 /**
  * Genera un consejo del Coach accionable, empático y en español cotidiano según la foto actual del usuario.
+ * Aplica Microcopy Sin Culpa (estilo Nequi + Pablo Financiero) y nombra a Tu Guaca.
  */
-export function getDailyCoachTip(snapshot: CoachSnapshot): string {
+export function evaluateCoachRules(snapshot: CoachSnapshot): string {
   if (snapshot.vitalMinimum <= 0) {
-    return 'Configura tus 4 pilares del Mínimo Vital en el Plan Coach para que podamos cuidar tu tranquilidad.';
+    return 'Configura tus 4 pilares del Mínimo Vital en el Plan Coach para que podamos cuidar Tu Guaca y tu tranquilidad.';
   }
 
   if (snapshot.netIncome <= 0) {
@@ -277,20 +284,215 @@ export function getDailyCoachTip(snapshot: CoachSnapshot): string {
   }
 
   if (snapshot.vitalMinimum > snapshot.netIncome) {
-    return 'Atención: Tu Mínimo Vital supera tus ingresos este mes. Prioriza vivienda y comida antes de cualquier otro gasto.';
+    return 'Ey, este mes estuvo movido: tu Mínimo Vital supera tus ingresos. Tranqui, cuidemos lo sagrado primero (techo y comida) antes de cualquier otro gasto.';
   }
 
   if (snapshot.debtObligations > snapshot.netIncome * 0.4) {
-    return 'Tus deudas están consumiendo más del 40% de tu sueldo. Revisa el Plan de Pago en Cuentas para liberarte más rápido.';
+    return 'Tus deudas están consumiendo más del 40% de tu sueldo. Tranqui: revisa el Plan de Pago en Cuentas para liberarte paso a paso sin culpa.';
   }
 
   if (snapshot.emergencyFundBalance < snapshot.vitalMinimum) {
-    return 'Tu primera meta de oro: reunir 1 mes de Mínimo Vital para tu Colchón de Tranquilidad. ¡Cada peso suma!';
+    return 'Tu primera meta de oro: reunir 1 mes de Mínimo Vital para Tu Guaca (tu colchón de tranquilidad). ¡Cada peso suma!';
   }
 
   if (snapshot.totalLeaksAnnual > 500000) {
-    return 'Revisa tus suscripciones: detectamos fugas recurrentes por más de $ 500.000 al año que podrías rescatar.';
+    return 'Revisa tus suscripciones: detectamos fugas silenciosas por más de $ 500.000 al año que podrías rescatar para Tu Guaca.';
   }
 
-  return '¡Vas con paso firme! Tu Mínimo Vital está protegido y tienes margen para ahorrar o darte un gusto consciente.';
+  return '¡Vas con paso firme! Tu Mínimo Vital está protegido y tienes margen para ahorrar en Tu Guaca o darte un gusto consciente sin culpa.';
+}
+
+export const getDailyCoachTip = evaluateCoachRules;
+
+/**
+ * Calcula el gasto diario y semanal seguro ("Safe Allowance") según perfil de ingreso.
+ * Sin regaños, con microcopy empático y límites protectores.
+ */
+export function calculateSafeAllowance(params: {
+  guiltFreeAvailable: number;
+  daysRemainingInMonth: number;
+  profileType?: UserProfileType;
+}): SafeAllowanceSummary {
+  const profileType: UserProfileType = params.profileType ?? 'salary';
+
+  const profileLabels: Record<UserProfileType, string> = {
+    salary: 'Sueldo fijo',
+    student: 'Estudiante / Mesada',
+    variable: 'Independiente / Variable',
+  };
+  const profileLabel = profileLabels[profileType] || 'Sueldo fijo';
+
+  let rawDays = Math.floor(params.daysRemainingInMonth);
+  if (!Number.isFinite(rawDays) || rawDays < 1) rawDays = 1;
+  if (rawDays > 31) rawDays = 31;
+  const safeDays = rawDays;
+
+  const available = Math.max(0, roundCOP(params.guiltFreeAvailable));
+
+  if (available <= 0) {
+    return {
+      profileType,
+      profileLabel,
+      dailyAllowance: 0,
+      weeklyAllowance: 0,
+      daysRemaining: safeDays,
+      headlineMessage:
+        'Este mes ya cubriste lo tuyo al ras, tranqui: vamos paso a paso cuidando lo esencial.',
+    };
+  }
+
+  const dailyAllowance = Math.floor(available / safeDays);
+  const weeklyDays = Math.min(7, safeDays);
+  const weeklyAllowance = Math.min(available, Math.floor(dailyAllowance * weeklyDays));
+
+  let headlineMessage: string;
+  if (profileType === 'student') {
+    headlineMessage = `Con tu mesada te alcanza para gastar ${formatCOP(dailyAllowance)} al día (${formatCOP(weeklyAllowance)} esta semana) sin remordimientos.`;
+  } else if (profileType === 'variable') {
+    headlineMessage = `Para que la plata te rinda parejo este mes, puedes gastar hasta ${formatCOP(dailyAllowance)} al día (${formatCOP(weeklyAllowance)} por semana).`;
+  } else {
+    headlineMessage = `Tienes luz verde para gastar ${formatCOP(dailyAllowance)} al día (${formatCOP(weeklyAllowance)} esta semana) con total tranquilidad.`;
+  }
+
+  return {
+    profileType,
+    profileLabel,
+    dailyAllowance,
+    weeklyAllowance,
+    daysRemaining: safeDays,
+    headlineMessage,
+  };
+}
+
+export interface SpendingDetectiveInput {
+  transactions: Transaction[];
+  subscriptions: SubscriptionLeak[];
+  vitalMinimum: number;
+  emergencyFundBalance?: number;
+  debts?: Debt[];
+  now?: Date | string;
+}
+
+/**
+ * El Detective de tu Plata:
+ * Motor 100% local y determinístico que detecta fugas silenciosas y gastos recortables,
+ * calculando cuánto dinero anual y cuántos días de Guaca ganas para tu tranquilidad.
+ */
+export function analyzeSpendingDetective(
+  params: SpendingDetectiveInput
+): SpendingDetectiveInsight[] {
+  const refDate = params.now ? new Date(params.now) : new Date();
+  const currentYear = refDate.getFullYear();
+  const currentMonth = refDate.getMonth();
+
+  const safeVital = Math.max(0, roundCOP(params.vitalMinimum));
+  const dailyVital = Math.max(1, Math.round(safeVital / 30));
+
+  const unpaidDebts = (params.debts || []).filter((d) => !d.isPaid);
+  const totalDebt = unpaidDebts.reduce((sum, d) => sum + Math.max(0, d.remainingBalance), 0);
+  const totalMinPayment = unpaidDebts.reduce(
+    (sum, d) => sum + Math.max(0, d.minimumMonthlyPayment),
+    0
+  );
+
+  const insights: SpendingDetectiveInsight[] = [];
+
+  // 1. Analizar gastos discrecionales del mes actual agrupados por categoría
+  const categorySpends = new Map<string, number>();
+
+  for (const tx of params.transactions) {
+    if (tx.type !== 'expense') continue;
+    // Excluir gastos de mínimo vital, deudas, transferencias o ingresos
+    if (
+      tx.pillar === 'vital' ||
+      tx.pillar === 'debt' ||
+      tx.pillar === 'transfer' ||
+      tx.pillar === 'income'
+    ) {
+      continue;
+    }
+
+    const txDate = new Date(tx.date);
+    if (isNaN(txDate.getTime())) continue;
+    if (txDate.getFullYear() !== currentYear || txDate.getMonth() !== currentMonth) {
+      continue;
+    }
+
+    const catName = tx.categoryId?.trim() || 'Varios';
+    const current = categorySpends.get(catName) || 0;
+    categorySpends.set(catName, current + Math.max(0, tx.amount));
+  }
+
+  for (const [catName, spend] of categorySpends.entries()) {
+    if (spend <= 0) continue;
+    const suggestedCutAmount = Math.round(spend * 0.35); // 35% de recorte sugerido
+    const annualSavings = suggestedCutAmount * 12;
+
+    const daysOfGuacaGained =
+      safeVital > 0 && suggestedCutAmount > 0
+        ? Math.max(1, Math.round(annualSavings / dailyVital))
+        : 0;
+
+    let debtMonthsSaved = 0;
+    if (totalDebt > 0 && suggestedCutAmount > 0) {
+      const divisor = totalMinPayment > 0 ? totalMinPayment : totalDebt / 12;
+      debtMonthsSaved = Math.max(1, Math.round(annualSavings / Math.max(1, divisor)));
+    }
+
+    const nequiMessage = `Pillamos que en ${catName} van ${formatCOP(spend)} este mes. Bajándole un 35% te rescatas ${formatCOP(annualSavings)} al año para Tu Guaca (${daysOfGuacaGained} días más de tranquilidad).`;
+
+    insights.push({
+      id: `cat_${catName.toLowerCase().replace(/\s+/g, '_')}`,
+      sourceType: 'category',
+      categoryOrLeakName: catName,
+      monthlySpend: spend,
+      suggestedCutAmount,
+      annualSavings,
+      daysOfGuacaGained,
+      debtMonthsSaved,
+      nequiMessage,
+    });
+  }
+
+  // 2. Analizar suscripciones activas
+  for (const sub of params.subscriptions) {
+    if (sub.isActive === false) continue;
+    const monthlySpend =
+      sub.frequency === 'annual'
+        ? Math.round(Math.max(0, sub.amount) / 12)
+        : Math.max(0, sub.amount);
+    if (monthlySpend <= 0) continue;
+
+    const suggestedCutAmount = monthlySpend;
+    const annualSavings = suggestedCutAmount * 12;
+
+    const daysOfGuacaGained =
+      safeVital > 0 && suggestedCutAmount > 0
+        ? Math.max(1, Math.round(annualSavings / dailyVital))
+        : 0;
+
+    let debtMonthsSaved = 0;
+    if (totalDebt > 0 && suggestedCutAmount > 0) {
+      const divisor = totalMinPayment > 0 ? totalMinPayment : totalDebt / 12;
+      debtMonthsSaved = Math.max(1, Math.round(annualSavings / Math.max(1, divisor)));
+    }
+
+    const nequiMessage = `Tienes la suscripción de ${sub.name} en ${formatCOP(monthlySpend)}/mes. Al cancelarla o compartirla sumas ${formatCOP(annualSavings)} al año para Tu Guaca (${daysOfGuacaGained} días más de paz).`;
+
+    insights.push({
+      id: `sub_${sub.id}`,
+      sourceType: 'subscription',
+      categoryOrLeakName: sub.name,
+      monthlySpend,
+      suggestedCutAmount,
+      annualSavings,
+      daysOfGuacaGained,
+      debtMonthsSaved,
+      nequiMessage,
+    });
+  }
+
+  // 3. Ordenar por mayor ahorro anual y limitar a 3
+  insights.sort((a, b) => b.annualSavings - a.annualSavings);
+  return insights.slice(0, 3);
 }

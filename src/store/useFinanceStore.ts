@@ -19,6 +19,7 @@ import {
   TransactionQueryOptions,
   TransactionUndoRecord,
 } from '../db/types';
+import { calculateSafeAllowance, analyzeSpendingDetective } from '../domain/coach';
 import { planDebtPayoff } from '../domain/debtPlanner';
 import {
   Budget,
@@ -27,14 +28,18 @@ import {
   DebtPayoffPlan,
   FinancialPillar,
   LeakFrequency,
+  SafeAllowanceSummary,
   SavingsGoal,
+  SpendingDetectiveInsight,
   SubscriptionLeak,
   Transaction,
   TransactionType,
+  UserProfileType,
   UserSettings,
   Wallet,
   WalletType,
 } from '../domain/types';
+import { askParceCoachAI, ParceCoachAIResult } from '../services/geminiCoach';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -66,10 +71,14 @@ export interface FinanceState {
 
   // Inteligencia de Coach y Deudas
   coachSummary: MonthlyCoachSummary | null;
+  safeAllowance: SafeAllowanceSummary | null;
+  detectiveInsights: SpendingDetectiveInsight[];
   debtPlan: {
     snowball: DebtPayoffPlan;
     avalanche: DebtPayoffPlan;
   } | null;
+  aiCoachAdvice: ParceCoachAIResult | null;
+  isAiLoading: boolean;
 
   // Notificación accesible Snackbar
   snackbar: SnackbarState;
@@ -81,6 +90,7 @@ export interface FinanceState {
   togglePrivateMode: () => Promise<void>;
   setThemeMode: (mode: ThemeMode) => void;
   dismissSnackbar: () => void;
+  askAiCoach: () => Promise<ParceCoachAIResult>;
 
   // Acciones de Billeteras
   addWallet: (input: { name: string; type: WalletType; balance?: number; icon?: string; color?: string }) => Promise<Wallet>;
@@ -164,7 +174,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   savingsGoals: [],
 
   coachSummary: null,
+  safeAllowance: null,
+  detectiveInsights: [],
   debtPlan: null,
+  aiCoachAdvice: null,
+  isAiLoading: false,
 
   snackbar: {
     visible: false,
@@ -526,6 +540,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     const created = await activeRepo.createSubscription(input);
     const subscriptions = await activeRepo.listSubscriptions();
     set({ subscriptions });
+    await get().refreshCoachSummary();
     return created;
   },
 
@@ -534,6 +549,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     await activeRepo.updateSubscription(id, input);
     const subscriptions = await activeRepo.listSubscriptions();
     set({ subscriptions });
+    await get().refreshCoachSummary();
   },
 
   deleteSubscription: async (id) => {
@@ -541,6 +557,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     await activeRepo.deleteSubscription(id);
     const subscriptions = await activeRepo.listSubscriptions();
     set({ subscriptions });
+    await get().refreshCoachSummary();
   },
 
   // ==========================================
@@ -634,7 +651,89 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     if (!activeRepo) return;
     const key = monthKey || getCurrentMonthKey();
     const summary = await activeRepo.getMonthlyCoachSummary(key);
-    set({ coachSummary: summary });
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const currentDay = now.getDate();
+    const daysRemaining = Math.max(1, daysInMonth - currentDay + 1);
+
+    const profileType: UserProfileType = get().settings?.profileType || 'salary';
+
+    const safeAllowance = calculateSafeAllowance({
+      guiltFreeAvailable: summary.guiltFreeAvailable,
+      daysRemainingInMonth: daysRemaining,
+      profileType,
+    });
+
+    const detectiveInsights = analyzeSpendingDetective({
+      transactions: get().transactions,
+      subscriptions: get().subscriptions,
+      vitalMinimum: summary.vitalMinimum,
+      emergencyFundBalance: summary.emergencyFundBalance,
+      debts: get().debts,
+      now,
+    });
+
+    set({ coachSummary: summary, safeAllowance, detectiveInsights });
+  },
+
+  askAiCoach: async () => {
+    const state = get();
+    set({ isAiLoading: true });
+    try {
+      const settings = state.settings;
+      const coach = state.coachSummary;
+      const profileType: UserProfileType = settings?.profileType || 'salary';
+      const vitalMin = coach?.vitalMinimum || 0;
+      const netInc = settings?.netMonthlyIncome || coach?.totalIncome || 0;
+      const guiltFree = coach?.guiltFreeAvailable || 0;
+      const efBalance = coach?.emergencyFundBalance || 0;
+      const efMonths = coach?.emergencyFund?.monthsCovered || 0;
+
+      const catMap = new Map<string, number>();
+      for (const tx of state.transactions) {
+        if (tx.type === 'expense') {
+          const name = tx.categoryId || 'Varios';
+          catMap.set(name, (catMap.get(name) || 0) + tx.amount);
+        }
+      }
+      const topCategories = Array.from(catMap.entries())
+        .map(([name, total]) => ({ name, total }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
+
+      const activeLeaksTotal = state.subscriptions
+        .filter((s) => s.isActive)
+        .reduce(
+          (sum, s) => sum + (s.frequency === 'annual' ? s.amount : s.amount * 12),
+          0
+        );
+
+      const unpaidDebts = state.debts.filter((d) => !d.isPaid);
+      const totalDebt = unpaidDebts.reduce((sum, d) => sum + d.remainingBalance, 0);
+
+      const result = await askParceCoachAI({
+        apiKey: settings?.geminiApiKey,
+        profileType,
+        vitalMinimum: vitalMin,
+        monthlyIncome: netInc,
+        guiltFreeAvailable: guiltFree,
+        emergencyFundBalance: efBalance,
+        emergencyMonths: efMonths,
+        topCategories,
+        activeLeaksTotal,
+        totalDebt,
+        detectiveInsights: state.detectiveInsights,
+      });
+
+      set({ aiCoachAdvice: result, isAiLoading: false });
+      return result;
+    } catch (err: unknown) {
+      set({ isAiLoading: false });
+      throw err;
+    }
   },
 
   refreshDebtPlan: (extraPayment = 0) => {

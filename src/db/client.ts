@@ -25,6 +25,7 @@ interface InMemoryState {
   foreignKeys: number;
   journalMode: string;
   tables: Record<string, Record<string, unknown>[]>;
+  tableColumns: Record<string, string[]>;
   indexes: Record<string, { tableName: string; indexName: string }>;
 }
 
@@ -34,6 +35,7 @@ class InMemorySQLiteExecutor implements SQLiteExecutor {
     foreignKeys: 0,
     journalMode: 'delete',
     tables: {},
+    tableColumns: {},
     indexes: {},
   };
 
@@ -108,6 +110,21 @@ class InMemorySQLiteExecutor implements SQLiteExecutor {
       .trim();
     const cleanParams = params ? [...params] : [];
 
+    // PRAGMA table_info reads
+    const tableInfoMatch = trimmed.match(/^PRAGMA\s+table_info\s*\(\s*([a-zA-Z0-9_]+)\s*\)/i);
+    if (tableInfoMatch) {
+      const tableName = tableInfoMatch[1];
+      const cols = this.state.tableColumns[tableName] || [];
+      return cols.map((name, cid) => ({
+        cid,
+        name,
+        type: 'TEXT',
+        notnull: 0,
+        dflt_value: null,
+        pk: cid === 0 ? 1 : 0,
+      })) as unknown as T[];
+    }
+
     // PRAGMA reads
     if (/^PRAGMA\s+foreign_keys/i.test(trimmed)) {
       return [{ foreign_keys: this.state.foreignKeys } as unknown as T];
@@ -166,13 +183,74 @@ class InMemorySQLiteExecutor implements SQLiteExecutor {
     }
 
     if (upper.startsWith('CREATE TABLE')) {
-      const match = stmt.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_]+)/i);
+      const match = stmt.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_]+)(?:\s*\(([\s\S]+)\))?/i);
       if (match) {
         const tableName = match[1];
         if (!this.state.tables[tableName]) {
           this.state.tables[tableName] = [];
         }
+        if (match[2]) {
+          const lines = match[2]
+            .split(/,|\n/)
+            .map((l) => l.trim())
+            .filter((l) => l.length > 0);
+          const cols: string[] = [];
+          for (const line of lines) {
+            const colMatch = line.match(/^([a-zA-Z0-9_]+)\s+[A-Z]+/i);
+            if (
+              colMatch &&
+              !['PRIMARY', 'FOREIGN', 'CHECK', 'CONSTRAINT', 'UNIQUE'].includes(
+                colMatch[1].toUpperCase()
+              )
+            ) {
+              cols.push(colMatch[1]);
+            }
+          }
+          this.state.tableColumns[tableName] = cols;
+        }
       }
+      return;
+    }
+
+    if (upper.startsWith('ALTER TABLE')) {
+      const match = stmt.match(
+        /ALTER\s+TABLE\s+([a-zA-Z0-9_]+)\s+ADD\s+COLUMN\s+([a-zA-Z0-9_]+)/i
+      );
+      if (match) {
+        const tableName = match[1];
+        const colName = match[2];
+        let defaultVal: unknown = null;
+        const defaultMatch = stmt.match(/DEFAULT\s+('(?:''|[^'])*'|\S+)/i);
+        if (defaultMatch) {
+          const raw = defaultMatch[1];
+          if (raw.startsWith("'") && raw.endsWith("'")) {
+            defaultVal = raw.slice(1, -1).replace(/''/g, "'");
+          } else if (!isNaN(Number(raw))) {
+            defaultVal = Number(raw);
+          } else {
+            defaultVal = raw;
+          }
+        }
+
+        if (!this.state.tableColumns[tableName]) {
+          this.state.tableColumns[tableName] = [];
+        }
+        if (!this.state.tableColumns[tableName].includes(colName)) {
+          this.state.tableColumns[tableName].push(colName);
+        }
+        if (this.state.tables[tableName]) {
+          for (const row of this.state.tables[tableName]) {
+            if (row[colName] === undefined) {
+              row[colName] = defaultVal;
+            }
+          }
+        }
+      }
+      return;
+    }
+
+    if (upper.startsWith('INSERT INTO') || upper.startsWith('INSERT OR REPLACE INTO')) {
+      this.handleInsert(stmt, []);
       return;
     }
 

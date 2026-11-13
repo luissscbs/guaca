@@ -7,8 +7,17 @@ import {
   calculateAnnualizedLeak,
   simulatePurchase,
   getDailyCoachTip,
+  evaluateCoachRules,
+  calculateSafeAllowance,
+  analyzeSpendingDetective,
 } from '../coach';
-import { VitalBreakdown, CoachSnapshot } from '../types';
+import {
+  VitalBreakdown,
+  CoachSnapshot,
+  Transaction,
+  SubscriptionLeak,
+  Debt,
+} from '../types';
 
 describe('Coach Domain Engine', () => {
   describe('calculateVitalMinimum', () => {
@@ -482,6 +491,292 @@ describe('Coach Domain Engine', () => {
       };
       const tip = getDailyCoachTip(snapshot);
       expect(tip).toMatch(/Paz|paso firme|protegido|tranquilidad/i);
+    });
+
+    it('uses empathetic no-guilt tone and mentions Tu Guaca in evaluateCoachRules', () => {
+      const snapshot: CoachSnapshot = {
+        netIncome: 1500000,
+        vitalMinimum: 2000000,
+        debtObligations: 0,
+        emergencyFundBalance: 100000,
+        spentThisMonth: 0,
+        totalLeaksAnnual: 0,
+        dayOfMonth: 10,
+      };
+      const tip = evaluateCoachRules(snapshot);
+      expect(tip).toMatch(/Ey, este mes estuvo movido/i);
+      expect(tip).toMatch(/tranqui|sagrado/i);
+
+      const snapshotGuaca: CoachSnapshot = {
+        netIncome: 3000000,
+        vitalMinimum: 1500000,
+        debtObligations: 0,
+        emergencyFundBalance: 500000,
+        spentThisMonth: 0,
+        totalLeaksAnnual: 0,
+        dayOfMonth: 5,
+      };
+      const tipGuaca = evaluateCoachRules(snapshotGuaca);
+      expect(tipGuaca).toContain('Tu Guaca');
+    });
+  });
+
+  describe('calculateSafeAllowance', () => {
+    it('calculates daily and weekly allowance for fixed salary profile', () => {
+      const result = calculateSafeAllowance({
+        guiltFreeAvailable: 300000,
+        daysRemainingInMonth: 10,
+        profileType: 'salary',
+      });
+      expect(result.profileType).toBe('salary');
+      expect(result.profileLabel).toBe('Sueldo fijo');
+      expect(result.dailyAllowance).toBe(30000); // 300.000 / 10
+      expect(result.weeklyAllowance).toBe(210000); // 30.000 * 7
+      expect(result.daysRemaining).toBe(10);
+      expect(result.headlineMessage).toMatch(/luz verde|30\.000/i);
+    });
+
+    it('adapts headline message for student / allowance profile', () => {
+      const result = calculateSafeAllowance({
+        guiltFreeAvailable: 150000,
+        daysRemainingInMonth: 15,
+        profileType: 'student',
+      });
+      expect(result.profileType).toBe('student');
+      expect(result.profileLabel).toBe('Estudiante / Mesada');
+      expect(result.dailyAllowance).toBe(10000);
+      expect(result.weeklyAllowance).toBe(70000);
+      expect(result.headlineMessage).toMatch(/Con tu mesada te alcanza para/i);
+    });
+
+    it('adapts headline message for variable / independent income profile', () => {
+      const result = calculateSafeAllowance({
+        guiltFreeAvailable: 400000,
+        daysRemainingInMonth: 20,
+        profileType: 'variable',
+      });
+      expect(result.profileType).toBe('variable');
+      expect(result.profileLabel).toBe('Independiente / Variable');
+      expect(result.dailyAllowance).toBe(20000);
+      expect(result.weeklyAllowance).toBe(140000);
+      expect(result.headlineMessage).toMatch(/Para que la plata te rinda parejo este mes/i);
+    });
+
+    it('defaults to salary profile when profileType is omitted', () => {
+      const result = calculateSafeAllowance({
+        guiltFreeAvailable: 200000,
+        daysRemainingInMonth: 10,
+      });
+      expect(result.profileType).toBe('salary');
+      expect(result.profileLabel).toBe('Sueldo fijo');
+    });
+
+    it('handles zero or negative guiltFreeAvailable with warm empathetic no-guilt message', () => {
+      const resultZero = calculateSafeAllowance({
+        guiltFreeAvailable: 0,
+        daysRemainingInMonth: 12,
+        profileType: 'salary',
+      });
+      expect(resultZero.dailyAllowance).toBe(0);
+      expect(resultZero.weeklyAllowance).toBe(0);
+      expect(resultZero.daysRemaining).toBe(12);
+      expect(resultZero.headlineMessage).toBe(
+        'Este mes ya cubriste lo tuyo al ras, tranqui: vamos paso a paso cuidando lo esencial.'
+      );
+
+      const resultNegative = calculateSafeAllowance({
+        guiltFreeAvailable: -50000,
+        daysRemainingInMonth: 8,
+      });
+      expect(resultNegative.dailyAllowance).toBe(0);
+      expect(resultNegative.weeklyAllowance).toBe(0);
+      expect(resultNegative.headlineMessage).toContain('tranqui: vamos paso a paso');
+    });
+
+    it('clamps days remaining safely between 1 and 31', () => {
+      const resultLow = calculateSafeAllowance({
+        guiltFreeAvailable: 100000,
+        daysRemainingInMonth: 0,
+      });
+      expect(resultLow.daysRemaining).toBe(1);
+      expect(resultLow.dailyAllowance).toBe(100000);
+
+      const resultHigh = calculateSafeAllowance({
+        guiltFreeAvailable: 310000,
+        daysRemainingInMonth: 45,
+      });
+      expect(resultHigh.daysRemaining).toBe(31);
+      expect(resultHigh.dailyAllowance).toBe(10000);
+    });
+
+    it('caps weekly allowance to available funds when remaining days < 7', () => {
+      const result = calculateSafeAllowance({
+        guiltFreeAvailable: 60000,
+        daysRemainingInMonth: 3,
+      });
+      expect(result.dailyAllowance).toBe(20000); // 60k / 3
+      expect(result.weeklyAllowance).toBe(60000); // Min(60k, 20k * 3) = 60k, not 140k
+    });
+  });
+
+  describe('analyzeSpendingDetective', () => {
+    const mockTransactions: Transaction[] = [
+      {
+        id: 'tx1',
+        amount: 200000,
+        type: 'expense',
+        pillar: 'leisure',
+        walletId: 'w1',
+        categoryId: 'Restaurantes y Ocio',
+        date: '2026-11-05T12:00:00.000Z',
+        createdAt: '2026-11-05T12:00:00.000Z',
+      },
+      {
+        id: 'tx2',
+        amount: 100000,
+        type: 'expense',
+        pillar: 'leisure',
+        walletId: 'w1',
+        categoryId: 'Restaurantes y Ocio',
+        date: '2026-11-08T12:00:00.000Z',
+        createdAt: '2026-11-08T12:00:00.000Z',
+      },
+      {
+        id: 'tx3',
+        amount: 80000,
+        type: 'expense',
+        pillar: 'leisure',
+        walletId: 'w1',
+        categoryId: 'Café y Domicilios',
+        date: '2026-11-10T12:00:00.000Z',
+        createdAt: '2026-11-10T12:00:00.000Z',
+      },
+      {
+        id: 'tx_vital',
+        amount: 500000,
+        type: 'expense',
+        pillar: 'vital',
+        walletId: 'w1',
+        categoryId: 'Mercado',
+        date: '2026-11-02T12:00:00.000Z',
+        createdAt: '2026-11-02T12:00:00.000Z',
+      },
+      {
+        id: 'tx_old_month',
+        amount: 300000,
+        type: 'expense',
+        pillar: 'leisure',
+        walletId: 'w1',
+        categoryId: 'Ropa',
+        date: '2026-10-15T12:00:00.000Z',
+        createdAt: '2026-10-15T12:00:00.000Z',
+      },
+    ];
+
+    const mockSubscriptions: SubscriptionLeak[] = [
+      {
+        id: 'sub1',
+        name: 'Streaming Premium',
+        amount: 40000,
+        frequency: 'monthly',
+        isActive: true,
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+      },
+      {
+        id: 'sub_inactive',
+        name: 'Gimnasio Inactivo',
+        amount: 80000,
+        frequency: 'monthly',
+        isActive: false,
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+      },
+    ];
+
+    const mockDebts: Debt[] = [
+      {
+        id: 'd1',
+        name: 'Tarjeta Bancaria',
+        creditor: 'Banco',
+        originalBalance: 2000000,
+        remainingBalance: 1200000,
+        minimumMonthlyPayment: 100000,
+        estimatedMonthlyRatePct: 2.1,
+        isPaid: false,
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+      },
+    ];
+
+    it('identifies top discretionary spending and subscriptions with annual savings', () => {
+      const insights = analyzeSpendingDetective({
+        transactions: mockTransactions,
+        subscriptions: mockSubscriptions,
+        vitalMinimum: 1500000, // $ 50.000 / day
+        emergencyFundBalance: 500000,
+        debts: mockDebts,
+        now: new Date('2026-11-15T00:00:00.000Z'),
+      });
+
+      expect(insights.length).toBeGreaterThan(0);
+      expect(insights.length).toBeLessThanOrEqual(3);
+
+      // Verify sorted by annual savings descending
+      for (let i = 0; i < insights.length - 1; i++) {
+        expect(insights[i].annualSavings).toBeGreaterThanOrEqual(insights[i + 1].annualSavings);
+      }
+
+      // Check category insight
+      const restInsight = insights.find((i) => i.categoryOrLeakName === 'Restaurantes y Ocio');
+      expect(restInsight).toBeDefined();
+      expect(restInsight?.monthlySpend).toBe(300000);
+      expect(restInsight?.suggestedCutAmount).toBe(105000); // 35% of 300.000
+      expect(restInsight?.annualSavings).toBe(1260000); // 105.000 * 12
+      expect(restInsight?.daysOfGuacaGained).toBeGreaterThanOrEqual(1);
+      expect(restInsight?.nequiMessage).toMatch(/Tu Guaca|Restaurantes/i);
+
+      // Check subscription insight
+      const subInsight = insights.find((i) => i.categoryOrLeakName === 'Streaming Premium');
+      expect(subInsight).toBeDefined();
+      expect(subInsight?.sourceType).toBe('subscription');
+      expect(subInsight?.monthlySpend).toBe(40000);
+      expect(subInsight?.annualSavings).toBe(480000); // 40.000 * 12
+      expect(subInsight?.nequiMessage).toMatch(/Streaming Premium/i);
+    });
+
+    it('returns empty array when there are no transactions or subscriptions', () => {
+      const insights = analyzeSpendingDetective({
+        transactions: [],
+        subscriptions: [],
+        vitalMinimum: 1500000,
+        now: new Date('2026-11-15T00:00:00.000Z'),
+      });
+      expect(insights).toEqual([]);
+    });
+
+    it('calculates days of Guaca gained correctly based on daily vital minimum', () => {
+      const insights = analyzeSpendingDetective({
+        transactions: [
+          {
+            id: 'tx_bar',
+            amount: 200000,
+            type: 'expense',
+            pillar: 'leisure',
+            walletId: 'w1',
+            categoryId: 'Salidas',
+            date: '2026-11-02T10:00:00.000Z',
+            createdAt: '2026-11-02T10:00:00.000Z',
+          },
+        ],
+        subscriptions: [],
+        vitalMinimum: 1500000, // 50.000/day
+        now: new Date('2026-11-15T00:00:00.000Z'),
+      });
+
+      expect(insights.length).toBe(1);
+      // Cut is 35% of 200k = 70k. Annual savings = 840k. Daily vital = 50k. Days = 840k / 50k = 17 days.
+      expect(insights[0].daysOfGuacaGained).toBe(17);
     });
   });
 });

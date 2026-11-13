@@ -164,4 +164,51 @@ describe('useFinanceStore Zustand (TDD)', () => {
     await useFinanceStore.getState().togglePrivateMode();
     expect(useFinanceStore.getState().settings?.isPrivateMode).toBe(true);
   });
+
+  it('calcula reactivamente safeAllowance y detectiveInsights al completar onboarding y registrar movimientos', async () => {
+    await useFinanceStore.getState().completeOnboarding({
+      userName: 'Felipe',
+      netMonthlyIncome: 3000000,
+      vitalBreakdown: { housing: 1000000, food: 500000, utilities: 200000, transport: 100000 },
+      initialWalletName: 'Nequi',
+      initialWalletBalance: 500000,
+    });
+
+    const state = useFinanceStore.getState();
+    expect(state.safeAllowance).not.toBeNull();
+    expect(state.safeAllowance?.profileType).toBe('salary');
+    expect(state.safeAllowance?.profileLabel).toBe('Sueldo fijo');
+    expect(state.detectiveInsights).toBeDefined();
+
+    // Agregar suscripción
+    await useFinanceStore.getState().addSubscription({
+      name: 'Spotify Familiar',
+      amount: 30000,
+      frequency: 'monthly',
+    });
+
+    const updatedState = useFinanceStore.getState();
+    expect(updatedState.detectiveInsights.length).toBeGreaterThan(0);
+    expect(updatedState.detectiveInsights[0].categoryOrLeakName).toBe('Spotify Familiar');
+    expect(updatedState.detectiveInsights[0].annualSavings).toBe(360000);
+  });
+
+  it('ejecuta askAiCoach actualizando el estado de carga y aiCoachAdvice', async () => {
+    await useFinanceStore.getState().completeOnboarding({
+      userName: 'Felipe',
+      netMonthlyIncome: 3000000,
+      vitalBreakdown: { housing: 1000000, food: 500000, utilities: 200000, transport: 100000 },
+      initialWalletName: 'Nequi',
+      initialWalletBalance: 500000,
+    });
+
+    const advice = await useFinanceStore.getState().askAiCoach();
+    expect(advice).toBeDefined();
+    expect(advice.source).toBe('local-detective'); // Sin API key por defecto
+    expect(advice.tips.length).toBeGreaterThan(0);
+
+    const state = useFinanceStore.getState();
+    expect(state.isAiLoading).toBe(false);
+    expect(state.aiCoachAdvice).toEqual(advice);
+  });
 });

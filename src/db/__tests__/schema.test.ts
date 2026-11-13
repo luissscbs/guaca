@@ -78,4 +78,51 @@ describe('Database Schema & Initialization (TDD)', () => {
       expect(idxCheck?.name).toBe(indexName);
     }
   });
+
+  it('incluye las columnas profile_type y gemini_api_key en user_settings', async () => {
+    await initDatabase(db);
+
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(user_settings);');
+    const columnNames = columns.map((c) => c.name);
+
+    expect(columnNames).toContain('profile_type');
+    expect(columnNames).toContain('gemini_api_key');
+  });
+
+  it('migra de forma segura e idempotente una tabla user_settings existente que carezca de profile_type o gemini_api_key', async () => {
+    // Simular tabla previa de versión 1 sin las nuevas columnas
+    await db.execAsync(`
+      PRAGMA user_version = 1;
+      CREATE TABLE user_settings (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        user_name TEXT NOT NULL,
+        currency TEXT NOT NULL DEFAULT 'COP',
+        net_monthly_income INTEGER NOT NULL DEFAULT 0,
+        vital_housing INTEGER NOT NULL DEFAULT 0,
+        vital_food INTEGER NOT NULL DEFAULT 0,
+        vital_utilities INTEGER NOT NULL DEFAULT 0,
+        vital_transport INTEGER NOT NULL DEFAULT 0,
+        month_start_day INTEGER NOT NULL DEFAULT 1,
+        is_private_mode INTEGER NOT NULL DEFAULT 0,
+        onboarding_completed INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      INSERT INTO user_settings (id, user_name, created_at, updated_at) VALUES (1, 'Carlos', '2026-01-01', '2026-01-01');
+    `);
+
+    // Ejecutar initDatabase para probar la migración
+    await initDatabase(db);
+
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(user_settings);');
+    const columnNames = columns.map((c) => c.name);
+
+    expect(columnNames).toContain('profile_type');
+    expect(columnNames).toContain('gemini_api_key');
+
+    // Verificar que los datos existentes no se perdieron
+    const row = await db.getFirstAsync<{ user_name: string; profile_type: string }>('SELECT user_name, profile_type FROM user_settings WHERE id = 1;');
+    expect(row?.user_name).toBe('Carlos');
+    expect(row?.profile_type).toBe('salary');
+  });
 });

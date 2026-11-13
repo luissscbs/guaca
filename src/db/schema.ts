@@ -50,6 +50,8 @@ const V1_SCHEMA_DDL = `
     month_start_day INTEGER NOT NULL DEFAULT 1 CHECK (month_start_day BETWEEN 1 AND 28),
     is_private_mode INTEGER NOT NULL DEFAULT 0 CHECK (is_private_mode IN (0, 1)),
     onboarding_completed INTEGER NOT NULL DEFAULT 0 CHECK (onboarding_completed IN (0, 1)),
+    profile_type TEXT NOT NULL DEFAULT 'salary',
+    gemini_api_key TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -181,5 +183,22 @@ export async function initDatabase(db: SQLiteExecutor): Promise<void> {
       await db.execAsync(V1_SCHEMA_DDL);
       await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION};`);
     });
+  }
+
+  // 4. Migración idempotente para columnas profile_type y gemini_api_key si faltan en bases existentes
+  const userSettingsCols = await db.getAllAsync<{ name: string }>(
+    'PRAGMA table_info(user_settings);'
+  );
+  if (userSettingsCols && userSettingsCols.length > 0) {
+    const existingColNames = new Set(userSettingsCols.map((c) => c.name));
+
+    if (!existingColNames.has('profile_type')) {
+      await db.execAsync(
+        "ALTER TABLE user_settings ADD COLUMN profile_type TEXT NOT NULL DEFAULT 'salary';"
+      );
+    }
+    if (!existingColNames.has('gemini_api_key')) {
+      await db.execAsync('ALTER TABLE user_settings ADD COLUMN gemini_api_key TEXT;');
+    }
   }
 }

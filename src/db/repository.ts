@@ -22,6 +22,7 @@ import {
   SubscriptionLeak,
   Transaction,
   TransactionType,
+  UserProfileType,
   UserSettings,
   VitalBreakdown,
   Wallet,
@@ -85,13 +86,22 @@ export class GuacaRepository {
     const existing = await this.getSettings();
     const createdAt = existing?.createdAt ?? now;
 
+    const profileType: UserProfileType =
+      input.profileType === 'student' || input.profileType === 'variable'
+        ? input.profileType
+        : 'salary';
+
+    const trimmedApiKey = input.geminiApiKey?.trim();
+    const geminiApiKey = trimmedApiKey && trimmedApiKey.length > 0 ? trimmedApiKey : null;
+
     await this.db.runAsync(
       `INSERT OR REPLACE INTO user_settings (
         id, user_name, currency, net_monthly_income,
         vital_housing, vital_food, vital_utilities, vital_transport,
         month_start_day, is_private_mode, onboarding_completed,
+        profile_type, gemini_api_key,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         1,
         input.userName.trim(),
@@ -104,6 +114,8 @@ export class GuacaRepository {
         input.monthStartDay ?? 1,
         input.isPrivateMode ? 1 : 0,
         input.onboardingCompleted ? 1 : 0,
+        profileType,
+        geminiApiKey,
         createdAt,
         now,
       ]
@@ -1060,6 +1072,7 @@ export class GuacaRepository {
         monthStartDay: input.monthStartDay ?? 1,
         isPrivateMode: false,
         onboardingCompleted: true,
+        profileType: input.profileType ?? 'salary',
       });
 
       // 2. Crear billetera inicial si se proporciona
@@ -1296,6 +1309,12 @@ export class GuacaRepository {
       transport: (row['vital_transport'] as number) || 0,
     };
 
+    const apiKeyVal = row['gemini_api_key'];
+    const geminiApiKey =
+      typeof apiKeyVal === 'string' && apiKeyVal.trim().length > 0
+        ? apiKeyVal.trim()
+        : undefined;
+
     return {
       userName: (row['user_name'] as string) || '',
       currency: 'COP',
@@ -1304,6 +1323,8 @@ export class GuacaRepository {
       monthStartDay: (row['month_start_day'] as number) || 1,
       isPrivateMode: row['is_private_mode'] === 1,
       onboardingCompleted: row['onboarding_completed'] === 1,
+      profileType: ((row['profile_type'] as UserProfileType) || 'salary'),
+      geminiApiKey,
       createdAt: (row['created_at'] as string) || '',
       updatedAt: (row['updated_at'] as string) || '',
     };

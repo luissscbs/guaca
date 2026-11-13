@@ -373,3 +373,48 @@ export const SPACING = {
   fab: 56,   // FAB Material Design 3
 } as const;
 ```
+
+---
+
+## 8. Guía de Humanización de Marca y Microcopy Sin Culpa (Estilo Nequi + Pablo Financiero)
+
+Esta guía define el tono, voz y personalidad de Guaca en todas las pantallas, notificaciones, resúmenes del coach y diagnósticos de inteligencia artificial.
+
+### 8.1 Los 5 Pilares de Voz y Tono
+
+1. **Arquetipo "El Parcero Sabio":**
+   Hablamos de tú a tú, cercanos, cálidos y sin subirnos a ningún pedestal bancario. No somos un juez ni un auditor tributario; somos el parcero que se sienta a tu lado en la mesa, te habla con la verdad sin tapujos, pero siempre te cuida las espaldas.
+
+2. **Metáforas Cotidianas ("Tu Guaca", "Lo Sagrado del Mes"):**
+   Reemplazamos conceptos financieros abstractos y fríos por términos tangibles que conectan con la cultura colombiana:
+   - En lugar de *"Fondo de Reserva de Emergencia"*, decimos **"Tu Guaca"** o **"Colchón de Tranquilidad"**.
+   - En lugar de *"Costos fijos operacionales esenciales"*, decimos **"Lo sagrado del mes"** o **"Mínimo Vital Intocable"** (techo, comida, servicios y transporte).
+   - En lugar de *"Superávit discrecional disponible"*, decimos **"Plata libre sin culpa"** o **"Lo que te queda pa' ti"**.
+
+3. **Microcopy Sin Culpa (Cero Regaños ni Alertas Vergonzantes):**
+   Los errores financieros no se castigan con lenguaje punitivo ni colores alarmistas humillantes. Si el usuario gastó de más o el mes viene apretado, la app nunca dice *"¡Has gastado en exceso!"* o *"Saldo insuficiente"*. En su lugar, ofrecemos apoyo empático: *"Ey, este mes estuvo movido. Tranqui: respiremos, cuidemos lo sagrado y vamos paso a paso para enderezar el barco"*. Celebrar cada avance, por pequeño que sea.
+
+4. **Traducción Radical a Plata Real (Pesos y Días):**
+   Prohibido mostrar porcentajes abstractos o tasas efectivas anuales sin su equivalente real. Todo se traduce a:
+   - **Plata por día:** *"Hoy tienes luz verde para gastar hasta $ 35.000 sin remordimientos"*.
+   - **Días de tranquilidad ganados:** *"Si recortas esta suscripción, le sumas 14 días más de paz a Tu Guaca"*.
+   - **Plata anual rescatada:** *"Son $ 420.000 al año que se quedan en tu bolsillo"*.
+
+5. **Empatía en Silencios, Vacíos y Confirmaciones:**
+   Las pantallas vacías (empty states) no son errores; son oportunidades de aliento: *"Todo en calma por acá. Cuando te llegue un pago o hagas una compra, anótalo en 2 toques"*. Al eliminar un registro o corregir un número, siempre se ofrece la opción inmediata de **"Deshacer"** sin juzgar.
+
+---
+
+### 8.2 Diccionario Comparativo: Términos Bancarios Fríos vs. Voz Guaca
+
+| Concepto Técnico / Término Bancario | Expresión Fría Tradicional | Voz Guaca ("Estilo Nequi + Pablo Financiero") | Intención Emocional |
+| :--- | :--- | :--- | :--- |
+| **Fondo de Emergencia** | Fondo de Imprevistos / Contingencia | **Tu Guaca** / **Colchón de Tranquilidad** | Seguridad cálida y pertenencia |
+| **Gastos Fijos Esenciales** | Gastos Ineludibles / Costos Fijos | **Lo sagrado del mes** / **Mínimo Vital** | Protección sin estrés |
+| **Presupuesto Disponible** | Superávit Remanente / Saldo Disponible | **Plata libre sin culpa** / **Lo tuyo pal día** | Disfrute sin remordimiento |
+| **Gastos Hormiga / Fugas** | Egresos Recurrentes No Operativos | **Fugas silenciosas** / **Fugas de tu plata** | Consciencia amistosa |
+| **Exceso de Gasto** | Límite presupuestal superado / Déficit | **Mes movido, cuidemos lo esencial** | Cero culpa, enfoque en solución |
+| **Alerta de Deuda** | Alerta de sobreendeudamiento | **Vamos a alivianar esa carga juntos** | Apoyo activo y esperanza |
+| **Saldo en Cero / Insuficiente** | Fondos insuficientes / Error | **Estás al ras, tranqui: vamos paso a paso** | Tranquilidad y contención |
+| **Aporte a Ahorro** | Transacción de fondeo patrimonial | **Una monedita más para Tu Guaca** | Celebración cotidiana |
+
