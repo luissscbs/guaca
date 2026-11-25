@@ -29,8 +29,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Install dependencies
         run: npm ci
@@ -70,7 +71,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Si el release v1.0.0 ya existe, sobreescribir el asset; si no, crearlo.
           if gh release view v1.0.0 > /dev/null 2>&1; then
             echo "Release v1.0.0 already exists. Uploading APK asset..."
             gh release upload v1.0.0 output/guaca-v1.0.0.apk --clobber
