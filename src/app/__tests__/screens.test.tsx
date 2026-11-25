@@ -325,10 +325,10 @@ describe('Screens & Navigation Flow', () => {
       fireEvent.press(getByRole('button', { name: 'Siguiente' }));
 
       // Step 3
-      fireEvent.changeText(getByPlaceholderText('Vivienda'), '0');
-      fireEvent.changeText(getByPlaceholderText('Mercado'), '200000');
-      fireEvent.changeText(getByPlaceholderText('Servicios'), '0');
-      fireEvent.changeText(getByPlaceholderText('Transporte'), '100000');
+      fireEvent.changeText(getByPlaceholderText('Vivienda (al mes)'), '0');
+      fireEvent.changeText(getByPlaceholderText('Mercado (al mes)'), '200000');
+      fireEvent.changeText(getByPlaceholderText('Servicios (al mes)'), '0');
+      fireEvent.changeText(getByPlaceholderText('Transporte (al mes)'), '100000');
 
       fireEvent.press(getByRole('button', { name: 'Activar mi Guaca' }));
 

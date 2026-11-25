@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
-import { Eye, EyeOff, Settings, ShieldCheck, ArrowRight, Compass } from 'lucide-react-native';
+import { Eye, EyeOff, Settings, ShieldCheck, ArrowRight, Compass, ArrowDownLeft } from 'lucide-react-native';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { PALETTE } from '../../constants/theme';
 import { MonthHealthPanel } from '../../components/organisms/MonthHealthPanel';
@@ -96,12 +96,13 @@ export default function HomeScreen() {
             <View className="flex-row items-center gap-2">
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="💸 Me enviaron plata"
+                accessibilityLabel="Me enviaron plata"
                 onPress={() => router.push('/quick-record?initialType=income')}
                 className="flex-row items-center bg-finance-growthSoft/70 border border-finance-growth/40 px-3 py-2 rounded-full min-h-[44px]"
               >
-                <Text className="text-xs font-sans-bold text-finance-growth">
-                  💸 Me enviaron plata
+                <ArrowDownLeft size={16} color={palette.financeGrowth} strokeWidth={2.4} />
+                <Text className="ml-1.5 text-xs font-sans-bold text-finance-growth">
+                  Me enviaron plata
                 </Text>
               </Pressable>
 

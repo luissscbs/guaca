@@ -13,6 +13,11 @@ import {
   Trash2,
   Check,
   X,
+  Utensils,
+  Bus,
+  Car,
+  Home,
+  Zap,
 } from 'lucide-react-native';
 import { UserProfileType, VitalBreakdown } from '../../domain/types';
 import { CreateQuickPresetInput } from '../../db/types';
@@ -459,8 +464,8 @@ export function OnboardingWizard({
             </View>
             <Text className="text-xs font-sans text-text-secondary mt-1">
               {profileType === 'student'
-                ? 'La suma exacta de lo que necesitas para techo, comida y servicios. Si vives con tu familia, deja Arriendo o Servicios en $0.'
-                : 'La suma exacta de lo que necesitas para techo, comida y servicios. Nadie toca este dinero.'}
+                ? 'Ingresa lo que gastas al mes en tus necesidades básicas. Si recibes mesada semanal o quincenal, pon la suma estimada para todo el mes. Si vives con tu familia, deja Arriendo o Servicios en $0.'
+                : 'Ingresa lo que gastas al mes en tus necesidades básicas. Si recibes mesada semanal o quincenal, pon la suma estimada para todo el mes.'}
             </Text>
           </View>
 
@@ -468,85 +473,91 @@ export function OnboardingWizard({
           <View className="flex-row flex-wrap gap-1.5 mb-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="🍔 Comidas"
+              accessibilityLabel="Comidas"
               accessibilityState={{ selected: hasFood }}
               onPress={() => setHasFood(!hasFood)}
-              className={`px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
+              className={`flex-row items-center px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
                 hasFood ? 'bg-brandSoft/60 border-brand' : 'bg-bg-subtle border-border-subtle'
               }`}
             >
-              <Text className={`text-xs ${hasFood ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
-                🍔 Comidas
+              <Utensils size={14} color={hasFood ? palette.brandPrimary : palette.textMuted} />
+              <Text className={`ml-1.5 text-xs ${hasFood ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
+                Comidas
               </Text>
             </Pressable>
 
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="🚌 Transporte"
+              accessibilityLabel="Transporte"
               accessibilityState={{ selected: hasTransport }}
               onPress={() => setHasTransport(!hasTransport)}
-              className={`px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
+              className={`flex-row items-center px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
                 hasTransport ? 'bg-brandSoft/60 border-brand' : 'bg-bg-subtle border-border-subtle'
               }`}
             >
-              <Text className={`text-xs ${hasTransport ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
-                🚌 Transporte
+              <Bus size={14} color={hasTransport ? palette.brandPrimary : palette.textMuted} />
+              <Text className={`ml-1.5 text-xs ${hasTransport ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
+                Transporte
               </Text>
             </Pressable>
 
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="🚗 Carro / Gasolina"
+              accessibilityLabel="Carro / Gasolina"
               accessibilityState={{ selected: hasCar }}
               onPress={() => setHasCar(!hasCar)}
-              className={`px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
+              className={`flex-row items-center px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
                 hasCar ? 'bg-brandSoft/60 border-brand' : 'bg-bg-subtle border-border-subtle'
               }`}
             >
-              <Text className={`text-xs ${hasCar ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
-                🚗 Carro / Gasolina
+              <Car size={14} color={hasCar ? palette.brandPrimary : palette.textMuted} />
+              <Text className={`ml-1.5 text-xs ${hasCar ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
+                Carro / Gasolina
               </Text>
             </Pressable>
 
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="🎓 U / Estudio"
+              accessibilityLabel="U / Estudio"
               accessibilityState={{ selected: hasStudy }}
               onPress={() => setHasStudy(!hasStudy)}
-              className={`px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
+              className={`flex-row items-center px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
                 hasStudy ? 'bg-brandSoft/60 border-brand' : 'bg-bg-subtle border-border-subtle'
               }`}
             >
-              <Text className={`text-xs ${hasStudy ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
-                🎓 U / Estudio
+              <GraduationCap size={14} color={hasStudy ? palette.brandPrimary : palette.textMuted} />
+              <Text className={`ml-1.5 text-xs ${hasStudy ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
+                U / Estudio
               </Text>
             </Pressable>
 
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="🏠 Arriendo / Casa"
+              accessibilityLabel="Arriendo / Casa"
               accessibilityState={{ selected: hasHousing }}
               onPress={() => setHasHousing(!hasHousing)}
-              className={`px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
+              className={`flex-row items-center px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
                 hasHousing ? 'bg-brandSoft/60 border-brand' : 'bg-bg-subtle border-border-subtle'
               }`}
             >
-              <Text className={`text-xs ${hasHousing ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
-                🏠 Arriendo / Casa
+              <Home size={14} color={hasHousing ? palette.brandPrimary : palette.textMuted} />
+              <Text className={`ml-1.5 text-xs ${hasHousing ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
+                Arriendo / Casa
               </Text>
             </Pressable>
 
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="💡 Servicios"
+              accessibilityLabel="Servicios"
               accessibilityState={{ selected: hasUtilities }}
               onPress={() => setHasUtilities(!hasUtilities)}
-              className={`px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
+              className={`flex-row items-center px-2.5 py-1.5 rounded-full border min-h-[36px] justify-center ${
                 hasUtilities ? 'bg-brandSoft/60 border-brand' : 'bg-bg-subtle border-border-subtle'
               }`}
             >
-              <Text className={`text-xs ${hasUtilities ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
-                💡 Servicios
+              <Zap size={14} color={hasUtilities ? palette.brandPrimary : palette.textMuted} />
+              <Text className={`ml-1.5 text-xs ${hasUtilities ? 'font-sans-bold text-brand' : 'font-sans text-text-muted'}`}>
+                Servicios
               </Text>
             </Pressable>
           </View>
@@ -554,7 +565,7 @@ export function OnboardingWizard({
           {/* Suma reactiva en tiempo real */}
           <View className="bg-finance-vitalSoft/40 border border-finance-vital/20 rounded-sm p-3 mb-2">
             <Text className="text-xs font-sans-medium text-finance-vital">
-              Total Mínimo Vital Intocable
+              Total Mínimo Vital al mes
             </Text>
             <View className="mt-1">
               <MoneyText amount={totalVital} variant="hero" tone="vital" />
@@ -566,15 +577,15 @@ export function OnboardingWizard({
             {hasHousing && (
               <View>
                 <Text className="text-xs font-sans-bold text-text-primary mb-1">
-                  Vivienda
+                  Vivienda (al mes)
                 </Text>
                 <GuacaInput
-                  placeholder="Vivienda"
+                  placeholder="Vivienda (al mes)"
                   prefix="$"
                   isNumericCOP={true}
                   value={housingStr}
                   onChangeText={setHousingStr}
-                  helperText="Arriendo, cuota hipotecaria o administración."
+                  helperText="Arriendo, cuota o administración mensual."
                 />
               </View>
             )}
@@ -582,15 +593,15 @@ export function OnboardingWizard({
             {hasFood && (
               <View>
                 <Text className="text-xs font-sans-bold text-text-primary mb-1">
-                  Mercado
+                  Mercado (al mes)
                 </Text>
                 <GuacaInput
-                  placeholder="Mercado"
+                  placeholder="Mercado (al mes)"
                   prefix="$"
                   isNumericCOP={true}
                   value={foodStr}
                   onChangeText={setFoodStr}
-                  helperText="Alimentación básica para el hogar."
+                  helperText="Comida básica del mes."
                 />
               </View>
             )}
@@ -598,15 +609,15 @@ export function OnboardingWizard({
             {hasUtilities && (
               <View>
                 <Text className="text-xs font-sans-bold text-text-primary mb-1">
-                  Servicios
+                  Servicios (al mes)
                 </Text>
                 <GuacaInput
-                  placeholder="Servicios"
+                  placeholder="Servicios (al mes)"
                   prefix="$"
                   isNumericCOP={true}
                   value={utilitiesStr}
                   onChangeText={setUtilitiesStr}
-                  helperText="Agua, luz, gas e internet indispensable."
+                  helperText="Agua, luz, gas e internet mensual."
                 />
               </View>
             )}
@@ -614,15 +625,15 @@ export function OnboardingWizard({
             {hasTransport && (
               <View>
                 <Text className="text-xs font-sans-bold text-text-primary mb-1">
-                  Transporte
+                  Transporte (al mes)
                 </Text>
                 <GuacaInput
-                  placeholder="Transporte"
+                  placeholder="Transporte (al mes)"
                   prefix="$"
                   isNumericCOP={true}
                   value={transportStr}
                   onChangeText={setTransportStr}
-                  helperText="Pasajes o combustible para trabajar y moverte."
+                  helperText="Pasajes de todo el mes."
                 />
               </View>
             )}
@@ -630,15 +641,15 @@ export function OnboardingWizard({
             {hasCar && (
               <View>
                 <Text className="text-xs font-sans-bold text-text-primary mb-1">
-                  Carro o Gasolina
+                  Carro o Gasolina (al mes)
                 </Text>
                 <GuacaInput
-                  placeholder="Carro o gasolina"
+                  placeholder="Carro o gasolina (al mes)"
                   prefix="$"
                   isNumericCOP={true}
                   value={carStr}
                   onChangeText={setCarStr}
-                  helperText="Gasolina, seguro o parqueadero."
+                  helperText="Gasolina y gastos del mes."
                 />
               </View>
             )}
