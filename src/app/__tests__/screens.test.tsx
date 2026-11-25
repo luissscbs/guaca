@@ -15,6 +15,7 @@ import SettingsScreen from '../settings';
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
+let mockNavigationState: any = { key: 'root-navigation-key' };
 
 jest.mock('react-native-gesture-handler', () => {
   const { View } = require('react-native');
@@ -53,6 +54,7 @@ jest.mock('expo-router', () => {
     useLocalSearchParams: () => ({}),
     usePathname: () => '/',
     useSegments: () => ['(tabs)'],
+    useRootNavigationState: () => mockNavigationState,
     Redirect: ({ href }: { href: string }) => null,
     Stack: Object.assign(({ children }: any) => <>{children}</>, {
       Screen: () => null,
@@ -81,6 +83,7 @@ jest.mock('@expo-google-fonts/jetbrains-mono', () => ({
 describe('Screens & Navigation Flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigationState = { key: 'root-navigation-key' };
     useFinanceStore.setState({
       isReady: true,
       isLoading: false,
@@ -250,6 +253,19 @@ describe('Screens & Navigation Flow', () => {
   });
 
   describe('Root Layout & Redirection', () => {
+    it('does not redirect if root navigation state is not mounted yet', async () => {
+      mockNavigationState = null;
+      useFinanceStore.setState({
+        settings: {
+          ...useFinanceStore.getState().settings!,
+          onboardingCompleted: false,
+        },
+      });
+
+      render(<RootLayout />);
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
     it('redirects to onboarding if onboarding is not completed', async () => {
       useFinanceStore.setState({
         settings: {
