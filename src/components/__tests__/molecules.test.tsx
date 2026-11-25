@@ -246,7 +246,7 @@ describe('Molecules: SubscriptionLeakItem', () => {
     expect(getByText(/Te cuesta \$ 420\.000 al año/i)).toBeTruthy();
 
     const toggleBtn = getByRole('button', { name: /Pausar/i });
-    expect(toggleBtn.props.className).toContain('min-h-[48px]');
+    expect(toggleBtn.props.className).toContain('min-h-[36px]');
     fireEvent.press(toggleBtn);
     expect(onToggleMock).toHaveBeenCalledTimes(1);
   });
@@ -276,7 +276,7 @@ describe('Molecules: SavingsGoalCard', () => {
 });
 
 describe('Molecules: InsightBanner', () => {
-  it('renders empathetic advice from Coach Pablo and CTA button >= 48dp', () => {
+  it('renders empathetic advice from Coach Pablo and CTA button', () => {
     const onActionMock = jest.fn();
     const { getByText, getByRole } = render(
       <InsightBanner
@@ -292,7 +292,7 @@ describe('Molecules: InsightBanner', () => {
     ).toBeTruthy();
 
     const btn = getByRole('button', { name: 'Ajustar meta' });
-    expect(btn.props.className).toContain('min-h-[48px]');
+    expect(btn.props.className).toContain('min-h-[36px]');
     fireEvent.press(btn);
     expect(onActionMock).toHaveBeenCalledTimes(1);
   });

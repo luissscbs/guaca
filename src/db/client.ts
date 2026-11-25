@@ -4,16 +4,28 @@
  * y un ejecutor en memoria ultra-fiel (`createInMemoryDatabase`) para Jest y entornos sin binarios nativos.
  */
 
+import { Platform } from 'react-native';
 import { SQLiteBindParams, SQLiteBindValue, SQLiteExecutor, SQLiteRunResult } from './types';
 
 /**
- * Conector real a la base de datos local SQLite de Guaca en Android / iOS.
- * Usa lazy import para no romper la ejecución de pruebas unitarias en Node.js.
+ * Conector a la base de datos local SQLite de Guaca.
+ * - En la web (`Platform.OS === 'web'`), utiliza el motor en memoria ultra-fiel (`createInMemoryDatabase`).
+ * - En plataformas móviles (Android / iOS), abre `expo-sqlite` nativo y, ante cualquier fallo o ausencia de binario,
+ *   recurre automáticamente al motor en memoria como respaldo resiliente para no bloquear la app.
  */
 export async function openGuacaDatabase(dbName: string = 'guaca.db'): Promise<SQLiteExecutor> {
-  const SQLite = require('expo-sqlite');
-  const db = await SQLite.openDatabaseAsync(dbName);
-  return db as SQLiteExecutor;
+  if (Platform.OS === 'web') {
+    return createInMemoryDatabase();
+  }
+
+  try {
+    const SQLite = require('expo-sqlite');
+    const db = await SQLite.openDatabaseAsync(dbName);
+    return db as SQLiteExecutor;
+  } catch (error) {
+    console.warn('[Guaca DB] No se pudo inicializar expo-sqlite nativo, usando base de datos en memoria como respaldo:', error);
+    return createInMemoryDatabase();
+  }
 }
 
 // =========================================================================

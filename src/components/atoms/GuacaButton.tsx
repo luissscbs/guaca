@@ -46,6 +46,18 @@ const VARIANT_TEXT: Record<ButtonVariant, string> = {
   tonal: 'text-brand font-sans-bold',
 };
 
+const SIZE_CONTAINER: Record<ButtonSize, string> = {
+  sm: 'min-h-[36px] px-3 py-1.5 rounded-sm',
+  md: 'min-h-[48px] px-4 py-3 rounded-sm',
+  lg: 'min-h-[52px] px-5 py-3.5 rounded-md',
+};
+
+const SIZE_TEXT: Record<ButtonSize, string> = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base font-sans-bold',
+};
+
 export function GuacaButton({
   title,
   onPress,
@@ -77,7 +89,8 @@ export function GuacaButton({
   };
 
   const containerClasses = [
-    'min-h-[48px] px-4 py-3 rounded-sm flex-row items-center justify-center',
+    'flex-row items-center justify-center',
+    SIZE_CONTAINER[size],
     VARIANT_CONTAINER[variant],
     disabled ? 'opacity-40' : '',
     className,
@@ -85,7 +98,7 @@ export function GuacaButton({
     .filter(Boolean)
     .join(' ');
 
-  const textClasses = ['text-sm text-center', VARIANT_TEXT[variant]].join(' ');
+  const textClasses = [SIZE_TEXT[size], 'text-center', VARIANT_TEXT[variant]].join(' ');
   const displayIconLeft = iconLeft || icon;
 
   const spinnerColor =

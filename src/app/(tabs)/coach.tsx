@@ -3,7 +3,7 @@ import { View, Text, ScrollView, ActivityIndicator, Pressable } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
-import { Sparkles, Shield, Search, Key, ChevronRight, BarChart3, HelpCircle } from 'lucide-react-native';
+import { Sparkles, Shield, Search, Key, ChevronRight, BarChart3, HelpCircle, Zap, ShieldCheck } from 'lucide-react-native';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { PALETTE } from '../../constants/theme';
 import { EmergencyFundGauge } from '../../components/organisms/EmergencyFundGauge';
@@ -61,9 +61,12 @@ export default function CoachScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="mt-3 mb-4">
-          <Text className="text-xl font-sans-extrabold text-text-primary">
-            Tu Coach & Detective 🕵️
-          </Text>
+          <View className="flex-row items-center">
+            <Text className="text-xl font-sans-extrabold text-text-primary mr-2">
+              Tu Coach & Detective
+            </Text>
+            <Sparkles size={18} color={palette.brandPrimary} />
+          </View>
           <Text className="text-xs font-sans text-text-secondary mt-0.5">
             Estrategias inteligentes para blindar tu vida y pagar menos intereses.
           </Text>
@@ -135,12 +138,26 @@ export default function CoachScreen() {
               <Text className="text-xs font-sans-medium text-text-primary leading-relaxed">
                 {aiCoachAdvice.message}
               </Text>
-              <Text className="text-[10px] font-sans-bold text-text-muted mt-2">
-                Fuente:{' '}
-                {aiCoachAdvice.source === 'gemini'
-                  ? '⚡ Google Gemini Flash'
-                  : '🕵️ Detective Local sin conexión'}
-              </Text>
+              <View className="flex-row items-center mt-2">
+                <Text className="text-[10px] font-sans-bold text-text-muted mr-1.5">
+                  Fuente:
+                </Text>
+                {aiCoachAdvice.source === 'gemini' ? (
+                  <View className="flex-row items-center">
+                    <Zap size={12} color={palette.brandPrimary} />
+                    <Text className="text-[10px] font-sans-bold text-brand ml-1">
+                      Google Gemini Flash
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="flex-row items-center">
+                    <ShieldCheck size={12} color={palette.textSecondary} />
+                    <Text className="text-[10px] font-sans-bold text-text-secondary ml-1">
+                      Detective Local sin conexión
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
           )}
 

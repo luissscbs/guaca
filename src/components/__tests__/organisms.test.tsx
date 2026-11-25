@@ -533,23 +533,24 @@ describe('Organisms: OnboardingWizard', () => {
     const nextBtnStep2 = getByRole('button', { name: 'Siguiente' });
     fireEvent.press(nextBtnStep2);
 
-    // Paso 3: Mínimo Vital en 4 casillas obligatorias
+    // Paso 3: Mínimo Vital en 4 casillas obligatorias al mes
     expect(getByText('Paso 3 de 3')).toBeTruthy();
-    expect(getByText('Vivienda')).toBeTruthy();
-    expect(getByText('Mercado')).toBeTruthy();
-    expect(getByText('Servicios')).toBeTruthy();
-    expect(getByText('Transporte')).toBeTruthy();
+    expect(getByText('Total Mínimo Vital al mes')).toBeTruthy();
+    expect(getByText('Vivienda (al mes)')).toBeTruthy();
+    expect(getByText('Mercado (al mes)')).toBeTruthy();
+    expect(getByText('Servicios (al mes)')).toBeTruthy();
+    expect(getByText('Transporte (al mes)')).toBeTruthy();
 
-    const housingInput = getByPlaceholderText('Vivienda');
+    const housingInput = getByPlaceholderText('Vivienda (al mes)');
     fireEvent.changeText(housingInput, '1200000');
 
-    const foodInput = getByPlaceholderText('Mercado');
+    const foodInput = getByPlaceholderText('Mercado (al mes)');
     fireEvent.changeText(foodInput, '600000');
 
-    const utilitiesInput = getByPlaceholderText('Servicios');
+    const utilitiesInput = getByPlaceholderText('Servicios (al mes)');
     fireEvent.changeText(utilitiesInput, '300000');
 
-    const transportInput = getByPlaceholderText('Transporte');
+    const transportInput = getByPlaceholderText('Transporte (al mes)');
     fireEvent.changeText(transportInput, '150000');
 
     // Suma en vivo: 1.200.000 + 600.000 + 300.000 + 150.000 = 2.250.000
@@ -646,6 +647,26 @@ describe('Organisms: OnboardingWizard', () => {
 
     // Paso 3: "Arma tu realidad" y agregar preset personalizado "CARRO"
     expect(getByText(/Arma tu realidad/i)).toBeTruthy();
+    expect(getByText(/Total Mínimo Vital al mes/i)).toBeTruthy();
+
+    // Comprobar chips de realidad limpios sin emojis
+    const foodChip = getByRole('button', { name: 'Comidas' });
+    const transportChip = getByRole('button', { name: 'Transporte' });
+    const carChip = getByRole('button', { name: 'Carro / Gasolina' });
+    const studyChip = getByRole('button', { name: 'U / Estudio' });
+    const houseChip = getByRole('button', { name: 'Arriendo / Casa' });
+    const utilChip = getByRole('button', { name: 'Servicios' });
+
+    expect(foodChip).toBeTruthy();
+    expect(transportChip).toBeTruthy();
+    expect(carChip).toBeTruthy();
+    expect(studyChip).toBeTruthy();
+    expect(houseChip).toBeTruthy();
+    expect(utilChip).toBeTruthy();
+
+    // Toggle chip Carro
+    fireEvent.press(carChip);
+    expect(getByPlaceholderText('Carro o gasolina (al mes)')).toBeTruthy();
 
     const addPresetBtn = getByRole('button', { name: /\+ Crear botón rápido/i });
     fireEvent.press(addPresetBtn);
