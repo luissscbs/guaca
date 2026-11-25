@@ -1,6 +1,8 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useFinanceStore } from '../../store/useFinanceStore';
+import * as updateChecker from '../../services/updateChecker';
 import RootLayout from '../_layout';
 import OnboardingScreen from '../onboarding';
 import HomeScreen from '../(tabs)/index';
@@ -78,6 +80,11 @@ jest.mock('@expo-google-fonts/jetbrains-mono', () => ({
   JetBrainsMono_500Medium: 'JetBrainsMono_500Medium',
   JetBrainsMono_600SemiBold: 'JetBrainsMono_600SemiBold',
   JetBrainsMono_700Bold: 'JetBrainsMono_700Bold',
+}));
+
+jest.mock('../../services/updateChecker', () => ({
+  checkForUpdates: jest.fn(),
+  compareSemver: jest.requireActual('../../services/updateChecker').compareSemver,
 }));
 
 describe('Screens & Navigation Flow', () => {
@@ -661,6 +668,76 @@ describe('Screens & Navigation Flow', () => {
             userName: 'Carlos Mendoza',
           })
         );
+      });
+    });
+
+    it('renders updates section with version v1.0.0, repo link, and checks for updates (up to date)', async () => {
+      (updateChecker.checkForUpdates as jest.Mock).mockResolvedValueOnce({
+        status: 'up_to_date',
+        currentVersion: '1.0.0',
+        latestVersion: 'v1.0.0',
+        releaseUrl: 'https://github.com/luissscbs/guaca/releases/tag/v1.0.0',
+      });
+
+      const { getByText, getByRole } = render(<SettingsScreen />);
+
+      expect(getByText(/Actualizaciones de Guaca/i)).toBeTruthy();
+      expect(getByText(/v1\.0\.0/i)).toBeTruthy();
+      expect(getByText(/github\.com\/luissscbs\/guaca/i)).toBeTruthy();
+
+      const checkBtn = getByRole('button', { name: /Buscar actualizaciones/i });
+      fireEvent.press(checkBtn);
+
+      await waitFor(() => {
+        expect(getByText(/¡Estás al día!/i)).toBeTruthy();
+      });
+    });
+
+    it('displays update card with apk download button when a newer version is available', async () => {
+      const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
+
+      (updateChecker.checkForUpdates as jest.Mock).mockResolvedValueOnce({
+        status: 'update_available',
+        currentVersion: '1.0.0',
+        latestVersion: 'v1.0.1',
+        releaseUrl: 'https://github.com/luissscbs/guaca/releases/tag/v1.0.1',
+        apkDownloadUrl: 'https://github.com/luissscbs/guaca/releases/download/v1.0.1/guaca-v1.0.1.apk',
+        releaseNotes: 'Mejoras en el coach y ahorro automático.',
+      });
+
+      const { getByRole, getByText } = render(<SettingsScreen />);
+
+      const checkBtn = getByRole('button', { name: /Buscar actualizaciones/i });
+      fireEvent.press(checkBtn);
+
+      await waitFor(() => {
+        expect(getByText(/¡Nueva versión disponible: v1\.0\.1!/i)).toBeTruthy();
+        expect(getByText(/Mejoras en el coach/i)).toBeTruthy();
+      });
+
+      const downloadBtn = getByRole('button', { name: /Descargar actualización \(\.apk\)/i });
+      fireEvent.press(downloadBtn);
+
+      expect(openURLSpy).toHaveBeenCalledWith(
+        'https://github.com/luissscbs/guaca/releases/download/v1.0.1/guaca-v1.0.1.apk'
+      );
+      openURLSpy.mockRestore();
+    });
+
+    it('handles network error gracefully when checking for updates', async () => {
+      (updateChecker.checkForUpdates as jest.Mock).mockResolvedValueOnce({
+        status: 'error',
+        currentVersion: '1.0.0',
+        errorMessage: 'No pudimos conectar con GitHub. Revisa tu conexión a internet.',
+      });
+
+      const { getByRole, getByText } = render(<SettingsScreen />);
+
+      const checkBtn = getByRole('button', { name: /Buscar actualizaciones/i });
+      fireEvent.press(checkBtn);
+
+      await waitFor(() => {
+        expect(getByText(/No pudimos conectar con GitHub/i)).toBeTruthy();
       });
     });
   });

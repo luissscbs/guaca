@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
@@ -16,6 +16,12 @@ import {
   TrendingUp,
   Save,
   ExternalLink,
+  RefreshCw,
+  CloudDownload,
+  CircleCheck,
+  CircleAlert,
+  Sparkles,
+  Github,
 } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -29,6 +35,7 @@ import { GuacaButton } from '../components/atoms/GuacaButton';
 import { GuacaSwitch } from '../components/atoms/GuacaSwitch';
 import { GuacaDivider } from '../components/atoms/GuacaDivider';
 import { BackupRestoreCard } from '../components/organisms/BackupRestoreCard';
+import { checkForUpdates, UpdateCheckResult } from '../services/updateChecker';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -74,6 +81,26 @@ export default function SettingsScreen() {
   const [apiKey, setApiKey] = useState(settings?.geminiApiKey || '');
   const [showApiKey, setShowApiKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Actualizaciones de Guaca (Open Source)
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(null);
+
+  const handleCheckUpdates = async () => {
+    try {
+      setIsCheckingUpdate(true);
+      const res = await checkForUpdates('1.0.0', 'luissscbs/guaca');
+      setUpdateResult(res);
+    } catch {
+      setUpdateResult({
+        status: 'error',
+        currentVersion: '1.0.0',
+        errorMessage: 'No pudimos conectar con GitHub. Revisa tu conexión a internet.',
+      });
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -438,6 +465,159 @@ export default function SettingsScreen() {
             onExportBackup={handleExportBackup}
             onRestoreBackup={handleRestoreBackup}
           />
+        </View>
+
+        {/* ============================================================ */}
+        {/* 6. ACTUALIZACIONES DE GUACA (OPEN SOURCE) */}
+        {/* ============================================================ */}
+        <View className="bg-bg-surface border border-border-subtle rounded-md p-4 mb-4">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center">
+              <RefreshCw size={18} color={palette.brandPrimary} />
+              <Text className="ml-2 font-sans-bold text-base text-text-primary">
+                Actualizaciones de Guaca
+              </Text>
+            </View>
+            <View className="bg-brandSoft/60 px-2 py-0.5 rounded-full border border-brand/20">
+              <Text className="text-[10px] font-sans-bold text-brand">Open Source</Text>
+            </View>
+          </View>
+
+          <Text className="text-xs font-sans text-text-secondary mb-3">
+            Guaca es 100% de código abierto y transparente. Revisa si hay nuevas versiones publicadas en GitHub.
+          </Text>
+
+          {/* Información de Versión y Repo */}
+          <View className="bg-bg-subtle/80 rounded-sm p-3 border border-border-subtle mb-3">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-xs font-sans text-text-secondary">Versión instalada</Text>
+              <Text className="text-xs font-mono-bold text-text-primary">v1.0.0</Text>
+            </View>
+
+            <View className="flex-row items-center justify-between">
+              <Text className="text-xs font-sans text-text-secondary">Repositorio oficial</Text>
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel="Abrir repositorio en GitHub"
+                onPress={() => Linking.openURL('https://github.com/luissscbs/guaca')}
+                className="flex-row items-center active:opacity-70"
+              >
+                <Github size={12} color={palette.brandPrimary} className="mr-1" />
+                <Text className="text-xs font-sans-semibold text-brand mr-1">
+                  github.com/luissscbs/guaca
+                </Text>
+                <ExternalLink size={12} color={palette.brandPrimary} />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Botón Buscar Actualizaciones */}
+          <GuacaButton
+            title={isCheckingUpdate ? 'Consultando GitHub...' : 'Buscar actualizaciones'}
+            variant="tonal"
+            size="sm"
+            loading={isCheckingUpdate}
+            iconLeft={<RefreshCw size={14} color={palette.brandPrimary} />}
+            onPress={handleCheckUpdates}
+            accessibilityLabel="Buscar actualizaciones"
+          />
+
+          {/* Estados de Resultado */}
+          {isCheckingUpdate && (
+            <View className="mt-3 flex-row items-center justify-center py-2">
+              <Text className="text-xs font-sans-medium text-text-secondary">
+                Consultando GitHub...
+              </Text>
+            </View>
+          )}
+
+          {!isCheckingUpdate && updateResult && (
+            <View className="mt-3">
+              {updateResult.status === 'up_to_date' && (
+                <View className="bg-brandSoft/50 border border-brand/30 rounded-sm p-3 flex-row items-start">
+                  <CircleCheck size={16} color={palette.financeGrowth} className="mt-0.5 mr-2" />
+                  <View className="flex-1 ml-2">
+                    <Text className="text-xs font-sans-bold text-text-primary">
+                      ¡Estás al día! Tienes la última versión v{updateResult.currentVersion}
+                    </Text>
+                    <Text className="text-[11px] font-sans text-text-secondary mt-0.5">
+                      No hay nuevas actualizaciones disponibles en este momento.
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {updateResult.status === 'update_available' && (
+                <View className="bg-brandSoft border border-brand rounded-sm p-3">
+                  <View className="flex-row items-center mb-1">
+                    <Sparkles size={16} color={palette.brandPrimary} />
+                    <Text className="ml-1.5 font-sans-bold text-sm text-text-primary">
+                      ¡Nueva versión disponible: {updateResult.latestVersion}!
+                    </Text>
+                  </View>
+
+                  {updateResult.publishedAt && (
+                    <Text className="text-[11px] font-sans text-text-secondary mb-1">
+                      Publicada: {new Date(updateResult.publishedAt).toLocaleDateString()}
+                    </Text>
+                  )}
+
+                  {updateResult.releaseNotes && (
+                    <View className="bg-bg-surface/80 rounded p-2 my-2 border border-border-subtle">
+                      <Text className="text-[11px] font-sans text-text-secondary leading-relaxed">
+                        {updateResult.releaseNotes}
+                      </Text>
+                    </View>
+                  )}
+
+                  <GuacaButton
+                    title="Descargar actualización (.apk)"
+                    variant="primary"
+                    size="sm"
+                    className="mt-2"
+                    iconLeft={<CloudDownload size={14} color="#FFFFFF" />}
+                    onPress={() => {
+                      const targetUrl =
+                        updateResult.apkDownloadUrl ||
+                        updateResult.releaseUrl ||
+                        'https://github.com/luissscbs/guaca/releases';
+                      Linking.openURL(targetUrl).catch(() => {});
+                    }}
+                    accessibilityLabel="Descargar actualización (.apk)"
+                  />
+                </View>
+              )}
+
+              {updateResult.status === 'no_releases' && (
+                <View className="bg-bg-subtle border border-border-subtle rounded-sm p-3 flex-row items-start">
+                  <CircleAlert size={16} color={palette.textSecondary} className="mt-0.5 mr-2" />
+                  <View className="flex-1 ml-2">
+                    <Text className="text-xs font-sans-bold text-text-primary">
+                      Sin versiones publicadas
+                    </Text>
+                    <Text className="text-[11px] font-sans text-text-secondary mt-0.5">
+                      {updateResult.errorMessage || 'No hay versiones publicadas aún en GitHub.'}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {updateResult.status === 'error' && (
+                <View className="bg-financeDanger/10 border border-financeDanger/30 rounded-sm p-3 flex-row items-start">
+                  <CircleAlert size={16} color={palette.financeDanger} className="mt-0.5 mr-2" />
+                  <View className="flex-1 ml-2">
+                    <Text className="text-xs font-sans-bold text-financeDanger">
+                      Aviso de conexión
+                    </Text>
+                    <Text className="text-[11px] font-sans text-text-secondary mt-0.5">
+                      {updateResult.errorMessage ||
+                        'No pudimos conectar con GitHub. Revisa tu conexión a internet.'}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Botón Guardar Cambios */}
