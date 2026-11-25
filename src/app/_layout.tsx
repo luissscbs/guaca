@@ -1,7 +1,7 @@
 import '../../global.css';
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { Stack, useRouter, usePathname } from 'expo-router';
+import { Stack, useRouter, usePathname, useRootNavigationState } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -26,6 +26,7 @@ import { GuacaSnackbar } from '../components/molecules/GuacaSnackbar';
 export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
+  const rootNavigationState = useRootNavigationState();
   const { colorScheme, setColorScheme } = useColorScheme();
 
   const isReady = useFinanceStore((state) => state.isReady);
@@ -70,9 +71,9 @@ export default function RootLayout() {
     }
   }, [themeMode, setColorScheme]);
 
-  // Redirección segura según estado de Onboarding
+  // Redirección segura según estado de Onboarding y montaje de navegación
   useEffect(() => {
-    if (!isReady) return;
+    if (!rootNavigationState?.key || !isReady) return;
 
     const isOnboarded = !!settings?.onboardingCompleted;
 
@@ -81,7 +82,7 @@ export default function RootLayout() {
     } else if (isOnboarded && pathname === '/onboarding') {
       router.replace('/(tabs)');
     }
-  }, [isReady, settings?.onboardingCompleted, pathname, router]);
+  }, [isReady, rootNavigationState?.key, settings?.onboardingCompleted, pathname, router]);
 
   if (!fontsLoaded && !fontError) {
     return (
