@@ -168,10 +168,10 @@ export default function BudgetsScreen() {
         {/* 1. LO SAGRADO DEL MES (MÍNIMO VITAL) */}
         {/* ============================================================ */}
         <View className="bg-bg-surface border border-border-subtle rounded-md p-4 mb-4">
-          <View className="flex-row items-center justify-between mb-2">
-            <View className="flex-row items-center">
+          <View className="flex-row items-center justify-between mb-2 gap-2">
+            <View className="flex-row items-center flex-1 mr-2">
               <Shield size={18} color={palette.financeVital} />
-              <Text className="ml-2 font-sans-bold text-base text-text-primary">
+              <Text className="ml-2 font-sans-bold text-base text-text-primary" numberOfLines={1}>
                 Lo sagrado del mes
               </Text>
             </View>
@@ -224,10 +224,10 @@ export default function BudgetsScreen() {
         {/* 2. PRESUPUESTOS POR CATEGORÍA */}
         {/* ============================================================ */}
         <View className="bg-bg-surface border border-border-subtle rounded-md p-4 mb-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center">
+          <View className="flex-row items-center justify-between mb-3 gap-2">
+            <View className="flex-row items-center flex-1 mr-2">
               <PieChart size={18} color={palette.brandPrimary} />
-              <Text className="ml-2 font-sans-bold text-base text-text-primary">
+              <Text className="ml-2 font-sans-bold text-base text-text-primary" numberOfLines={1}>
                 Topes por Categoría
               </Text>
             </View>
@@ -282,10 +282,10 @@ export default function BudgetsScreen() {
         {/* 4. METAS DE AHORRO Y MI GUACA */}
         {/* ============================================================ */}
         <View className="bg-bg-surface border border-border-subtle rounded-md p-4 mb-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center">
+          <View className="flex-row items-center justify-between mb-3 gap-2">
+            <View className="flex-row items-center flex-1 mr-2">
               <Target size={18} color={palette.financeGrowth} />
-              <Text className="ml-2 font-sans-bold text-base text-text-primary">
+              <Text className="ml-2 font-sans-bold text-base text-text-primary" numberOfLines={1}>
                 Metas de Ahorro
               </Text>
             </View>

@@ -184,10 +184,10 @@ export default function AccountsScreen() {
         {/* SECCIÓN 1: BILLETERAS Y CUENTAS */}
         {/* ============================================================ */}
         <View className="bg-bg-surface border border-border-subtle rounded-md p-4 mb-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center">
+          <View className="flex-row items-center justify-between mb-3 gap-2">
+            <View className="flex-row items-center flex-1 mr-2">
               <WalletIcon size={18} color={palette.brandPrimary} />
-              <Text className="ml-2 font-sans-bold text-base text-text-primary">
+              <Text className="ml-2 font-sans-bold text-base text-text-primary" numberOfLines={1}>
                 Billeteras y Cuentas
               </Text>
             </View>
@@ -225,10 +225,10 @@ export default function AccountsScreen() {
         {/* SECCIÓN 2: TARJETAS DE CRÉDITO */}
         {/* ============================================================ */}
         <View className="bg-bg-surface border border-border-subtle rounded-md p-4 mb-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center">
+          <View className="flex-row items-center justify-between mb-3 gap-2">
+            <View className="flex-row items-center flex-1 mr-2">
               <CreditCardIcon size={18} color={palette.brandPrimary} />
-              <Text className="ml-2 font-sans-bold text-base text-text-primary">
+              <Text className="ml-2 font-sans-bold text-base text-text-primary" numberOfLines={1}>
                 Tarjetas de Crédito
               </Text>
             </View>
@@ -266,10 +266,10 @@ export default function AccountsScreen() {
         {/* SECCIÓN 3: DEUDAS Y PRÉSTAMOS */}
         {/* ============================================================ */}
         <View className="bg-bg-surface border border-border-subtle rounded-md p-4 mb-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center">
+          <View className="flex-row items-center justify-between mb-3 gap-2">
+            <View className="flex-row items-center flex-1 mr-2">
               <Landmark size={18} color={palette.financeDanger} />
-              <Text className="ml-2 font-sans-bold text-base text-text-primary">
+              <Text className="ml-2 font-sans-bold text-base text-text-primary" numberOfLines={1}>
                 Deudas y Créditos
               </Text>
             </View>

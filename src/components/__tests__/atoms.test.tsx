@@ -97,6 +97,24 @@ describe('Atoms: GuacaButton', () => {
     const btn = getByRole('button');
     expect(btn.props.className).toContain('bg-finance-danger');
   });
+
+  it('supports size variants (sm, md, lg)', () => {
+    const { getByRole: getByRoleSm, getByText: getByTextSm } = render(
+      <GuacaButton title="Pequeño" size="sm" onPress={() => {}} />
+    );
+    const btnSm = getByRoleSm('button');
+    expect(btnSm.props.className).toContain('min-h-[36px]');
+    expect(btnSm.props.className).toContain('px-3');
+    expect(getByTextSm('Pequeño').props.className).toContain('text-xs');
+
+    const { getByRole: getByRoleLg, getByText: getByTextLg } = render(
+      <GuacaButton title="Grande" size="lg" onPress={() => {}} />
+    );
+    const btnLg = getByRoleLg('button');
+    expect(btnLg.props.className).toContain('min-h-[52px]');
+    expect(btnLg.props.className).toContain('px-5');
+    expect(getByTextLg('Grande').props.className).toContain('text-base');
+  });
 });
 
 describe('Atoms: QuickFAB', () => {

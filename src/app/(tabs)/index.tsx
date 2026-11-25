@@ -54,7 +54,7 @@ export default function HomeScreen() {
         <View className="flex-row items-center justify-between mt-3 mb-4">
           <View className="flex-1 mr-2">
             <Text className="text-xl font-sans-extrabold text-text-primary" numberOfLines={1}>
-              ¡Hola, {userName}! 👋
+              ¡Hola, {userName}!
             </Text>
             <Text className="text-xs font-sans text-text-secondary mt-0.5">
               Lo tuyo intocable, lo demás bajo control.
